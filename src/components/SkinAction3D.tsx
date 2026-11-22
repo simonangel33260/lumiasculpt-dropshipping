@@ -391,6 +391,90 @@ function papillaWave(x: number) {
   return 0.08 + Math.sin(x * 7.2) * 0.048 + Math.cos(x * 13.5) * 0.015;
 }
 
+/**
+ * Draws ultra-crisp 4x Retina borderless luxury serif typography onto a transparent canvas
+ * for true 3D floating spatial callout planes inside the Three.js scene (zero flat 2D boxes!).
+ */
+function draw3DCalloutCanvas(
+  ctx: CanvasRenderingContext2D,
+  opts: {
+    title: string;
+    metric: string;
+    subtitle: string;
+    accentCss: string;
+    active: boolean;
+    align: "left" | "right";
+  }
+) {
+  const W = ctx.canvas.width;
+  const H = ctx.canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const padX = 22;
+  const baselineY = 108;
+  const ruleY = 132;
+  const subY = 178;
+
+  // Whisper-soft ivory readability glow behind letters (zero box border!)
+  ctx.save();
+  ctx.textBaseline = "alphabetic";
+  ctx.shadowColor = "rgba(255, 253, 251, 0.96)";
+  ctx.shadowBlur = 18;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+
+  if (opts.align === "left") {
+    // Title (Luxury editorial serif, sized so long French names + metric fit with generous margin)
+    ctx.textAlign = "left";
+    ctx.font = `${opts.active ? 700 : 600} 50px Georgia, "Times New Roman", serif`;
+    ctx.fillStyle = opts.active ? "#181312" : "#564741";
+    ctx.fillText(opts.title, padX, baselineY);
+    const titleW = ctx.measureText(opts.title).width;
+
+    // Depth / Tech Accent Metric beside title
+    ctx.font = `700 34px system-ui, -apple-system, sans-serif`;
+    ctx.fillStyle = opts.active ? opts.accentCss : "#9B8378";
+    ctx.fillText(opts.metric, padX + titleW + 20, baselineY - 3);
+
+    // Subtle hairline champagne-gold / active rule connecting seamlessly from the 3D stem!
+    ctx.shadowBlur = 0;
+    const ruleGrad = ctx.createLinearGradient(0, ruleY, W * 0.88, ruleY);
+    ruleGrad.addColorStop(0, opts.active ? opts.accentCss : "rgba(182, 148, 128, 0.85)");
+    ruleGrad.addColorStop(0.75, opts.active ? `${opts.accentCss}66` : "rgba(182, 148, 128, 0.25)");
+    ruleGrad.addColorStop(1, "rgba(182, 148, 128, 0)");
+    ctx.fillStyle = ruleGrad;
+    ctx.fillRect(0, ruleY, W * 0.88, opts.active ? 4 : 2.5);
+
+    // Subtitle
+    ctx.shadowColor = "rgba(255, 253, 251, 0.96)";
+    ctx.shadowBlur = 14;
+    ctx.font = `500 33px system-ui, -apple-system, sans-serif`;
+    ctx.fillStyle = opts.active ? "#3D302C" : "#78665E";
+    ctx.fillText(opts.subtitle, padX, subY);
+  } else {
+    // Right-aligned (for upper-left LumiaSculpt™ callout extending leftward)
+    ctx.textAlign = "right";
+    ctx.font = `700 56px Georgia, "Times New Roman", serif`;
+    ctx.fillStyle = "#181312";
+    ctx.fillText(opts.title, W - padX, baselineY);
+
+    ctx.shadowBlur = 0;
+    const ruleGrad = ctx.createLinearGradient(W, ruleY, W * 0.12, ruleY);
+    ruleGrad.addColorStop(0, opts.accentCss);
+    ruleGrad.addColorStop(0.72, `${opts.accentCss}66`);
+    ruleGrad.addColorStop(1, "rgba(200, 70, 90, 0)");
+    ctx.fillStyle = ruleGrad;
+    ctx.fillRect(W * 0.12, ruleY, W * 0.88, 4);
+
+    ctx.shadowColor = "rgba(255, 253, 251, 0.96)";
+    ctx.shadowBlur = 14;
+    ctx.font = `700 36px system-ui, -apple-system, sans-serif`;
+    ctx.fillStyle = opts.accentCss;
+    ctx.fillText(opts.metric, W - padX, subY);
+  }
+  ctx.restore();
+}
+
 export function SkinAction3D({ activeMode, onSelectMode }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mountRef = useRef<HTMLDivElement>(null);
@@ -400,14 +484,6 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     zoomOut: () => void;
     reset: () => void;
   } | null>(null);
-  // Direct DOM refs for 60 FPS 3D-to-2D projected callout annotations (zero React re-renders)
-  const pinLineRefs = useRef<(SVGLineElement | null)[]>([]);
-  const pinDotRefs = useRef<(SVGCircleElement | null)[]>([]);
-  const pinRingRefs = useRef<(SVGCircleElement | null)[]>([]);
-  const pinLabelRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const wandLineRef = useRef<SVGLineElement | null>(null);
-  const wandDotRef = useRef<SVGCircleElement | null>(null);
-  const wandLabelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     modeRef.current = activeMode;
@@ -1353,6 +1429,175 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     root.add(particles);
 
     // =========================================================================
+    // TRUE 3D SPATIAL LUXURY ANATOMICAL CALLOUTS (3D Gold Orbs + Metallic Stems + 3D Serif Planes!)
+    // =========================================================================
+    const calloutTextures: THREE.CanvasTexture[] = [];
+    const pinGoldMatBase = new THREE.MeshPhysicalMaterial({
+      color: 0xd9b394,
+      metalness: 0.92,
+      roughness: 0.14,
+      clearcoat: 0.8,
+    });
+    const stemLen = 0.42;
+    const stemGeo = new THREE.CylinderGeometry(0.007, 0.011, stemLen, 12);
+    stemGeo.rotateZ(-Math.PI / 2);
+    stemGeo.translate(stemLen / 2, 0, 0);
+
+    const orbGeo = new THREE.SphereGeometry(0.044, 18, 16);
+    const haloTorusGeo = new THREE.TorusGeometry(0.076, 0.0085, 12, 32);
+
+    const layerCallouts = DEPTH_LAYERS.map((layer, idx) => {
+      const group = new THREE.Group();
+      root.add(group);
+
+      const pinMat = pinGoldMatBase.clone();
+      const orb = new THREE.Mesh(orbGeo, pinMat);
+      group.add(orb);
+
+      const haloMat = new THREE.MeshBasicMaterial({
+        color: MODE_CONFIG[0].color,
+        transparent: true,
+        opacity: idx === MODE_CONFIG[0].activeLayerIndex ? 0.65 : 0.18,
+      });
+      const halo = new THREE.Mesh(haloTorusGeo, haloMat);
+      group.add(halo);
+
+      const stemMat = pinGoldMatBase.clone();
+      const stem = new THREE.Mesh(stemGeo, stemMat);
+      group.add(stem);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 1080;
+      canvas.height = 240;
+      const ctx = canvas.getContext("2d")!;
+      draw3DCalloutCanvas(ctx, {
+        title: layer.name,
+        metric: layer.depth,
+        subtitle: layer.detail,
+        accentCss: MODE_CONFIG[0].css,
+        active: idx === MODE_CONFIG[0].activeLayerIndex,
+        align: "left",
+      });
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
+      tex.generateMipmaps = true;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      calloutTextures.push(tex);
+
+      const planeGeo = new THREE.PlaneGeometry(2.16, 0.48);
+      // Position plane left-edge right at the tip of the 3D stem so underline meets the stem cleanly
+      planeGeo.translate(stemLen + 1.08, 0.02, 0);
+      const planeMat = new THREE.MeshBasicMaterial({
+        map: tex,
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
+      const labelPlane = new THREE.Mesh(planeGeo, planeMat);
+      labelPlane.rotation.x = -0.14;
+      labelPlane.renderOrder = 14;
+      group.add(labelPlane);
+
+      return { group, orb, halo, haloMat, pinMat, stemMat, canvas, ctx, tex, labelPlane };
+    });
+
+    // 4th True 3D Callout rising smoothly up-left from the gliding LumiaSculpt™ wand head
+    const wandCalloutGroup = new THREE.Group();
+    root.add(wandCalloutGroup);
+
+    const wandPinMat = pinGoldMatBase.clone();
+    const wandOrb = new THREE.Mesh(new THREE.SphereGeometry(0.038, 16, 14), wandPinMat);
+    wandCalloutGroup.add(wandOrb);
+
+    const wandStemCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(-0.18, 0.56, 0),
+      new THREE.Vector3(-0.58, 0.72, 0),
+    ]);
+    const wandStemMat = pinGoldMatBase.clone();
+    const wandStem = new THREE.Mesh(
+      new THREE.TubeGeometry(wandStemCurve, 20, 0.0085, 10, false),
+      wandStemMat
+    );
+    wandCalloutGroup.add(wandStem);
+
+    const wandCanvas = document.createElement("canvas");
+    wandCanvas.width = 900;
+    wandCanvas.height = 240;
+    const wandCtx = wandCanvas.getContext("2d")!;
+    draw3DCalloutCanvas(wandCtx, {
+      title: "LumiaSculpt™",
+      metric: MODE_CONFIG[0].wavelength,
+      subtitle: "",
+      accentCss: MODE_CONFIG[0].css,
+      active: true,
+      align: "right",
+    });
+    const wandTex = new THREE.CanvasTexture(wandCanvas);
+    wandTex.colorSpace = THREE.SRGBColorSpace;
+    wandTex.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
+    wandTex.generateMipmaps = true;
+    wandTex.minFilter = THREE.LinearMipmapLinearFilter;
+    calloutTextures.push(wandTex);
+
+    const wandPlaneGeo = new THREE.PlaneGeometry(1.78, 0.47);
+    wandPlaneGeo.translate(-0.58 - 0.89, 0.76, 0);
+    const wandLabelPlane = new THREE.Mesh(
+      wandPlaneGeo,
+      new THREE.MeshBasicMaterial({
+        map: wandTex,
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      })
+    );
+    wandLabelPlane.rotation.x = -0.14;
+    wandLabelPlane.renderOrder = 14;
+    wandCalloutGroup.add(wandLabelPlane);
+
+    const update3DCalloutMode = (modeIdx: SynergyModeId) => {
+      const mCfg = MODE_CONFIG[modeIdx];
+      layerCallouts.forEach((lc, i) => {
+        const isAct = mCfg.activeLayerIndex === i;
+        draw3DCalloutCanvas(lc.ctx, {
+          title: DEPTH_LAYERS[i].name,
+          metric: DEPTH_LAYERS[i].depth,
+          subtitle: DEPTH_LAYERS[i].detail,
+          accentCss: mCfg.css,
+          active: isAct,
+          align: "left",
+        });
+        lc.tex.needsUpdate = true;
+        lc.pinMat.color.setHex(isAct ? mCfg.color : 0xd6b092);
+        lc.pinMat.emissive.setHex(isAct ? mCfg.color : 0x000000);
+        lc.pinMat.emissiveIntensity = isAct ? 0.85 : 0;
+        lc.stemMat.color.setHex(isAct ? mCfg.color : 0xcfa98c);
+        lc.haloMat.color.setHex(mCfg.color);
+        lc.haloMat.opacity = isAct ? 0.68 : 0.14;
+      });
+
+      draw3DCalloutCanvas(wandCtx, {
+        title: "LumiaSculpt™",
+        metric:
+          mCfg.shortLabel === "EMS 45°"
+            ? "EMS + Thermie 45 °C"
+            : mCfg.wavelength.replace(" + Sonique", " · Sonique"),
+        subtitle: "",
+        accentCss: mCfg.css,
+        active: true,
+        align: "right",
+      });
+      wandTex.needsUpdate = true;
+      wandPinMat.color.setHex(mCfg.color);
+      wandPinMat.emissive.setHex(mCfg.color);
+      wandPinMat.emissiveIntensity = 0.9;
+      wandStemMat.color.setHex(mCfg.color);
+    };
+    update3DCalloutMode(0);
+
+    // =========================================================================
     // INTERACTIVE 360° DRAG-TO-ORBIT + PINCH / WHEEL / BUTTON MACRO ZOOM
     // =========================================================================
     const activePointers = new Map<number, { x: number; y: number }>();
@@ -1366,9 +1611,9 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     let targetYaw = 0;
     let targetPitch = 0;
 
-    const DEFAULT_RADIUS = 7.65;
-    const MIN_RADIUS = 2.85; // deep ultra-macro zoom right into skin pores, keratinocytes & collagen!
-    const MAX_RADIUS = 9.4;
+    const DEFAULT_RADIUS = 10.45;
+    const MIN_RADIUS = 2.95; // deep ultra-macro zoom right into skin pores, keratinocytes & collagen!
+    const MAX_RADIUS = 12.0;
     let currentRadius = DEFAULT_RADIUS;
     let targetRadius = DEFAULT_RADIUS;
 
@@ -1487,8 +1732,6 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     const tgtGlow = new THREE.Color();
     const tgtSss = new THREE.Color();
     const tempPt = new THREE.Vector3();
-    const projA = new THREE.Vector3();
-    const projB = new THREE.Vector3();
     let elapsed = 0;
     let currentDepth = 1.0;
     let lastDrawnMode: SynergyModeId = 0;
@@ -1508,6 +1751,7 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
         lastDrawnMode = mode;
         drawDevicePanel(panelCtx, cfg.panelKey, cfg.css);
         panelTex.needsUpdate = true;
+        update3DCalloutMode(mode);
       }
 
       tgtColor.setHex(cfg.color);
@@ -1762,114 +2006,57 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
       userPitch += (targetPitch - userPitch) * Math.min(1, dt * 7);
       currentRadius += (targetRadius - currentRadius) * Math.min(1, dt * 7.5);
 
-      const zoomFactor = Math.max(0, Math.min(1, (DEFAULT_RADIUS - currentRadius) / (DEFAULT_RADIUS - MIN_RADIUS)));
-      const focusX = glideX * 0.42 * zoomFactor;
-      const focusY = -0.05 + 0.14 * zoomFactor;
-      const focusZ = glideZ * 0.35 * zoomFactor;
-
+      const zoomFactor = Math.max(
+        0,
+        Math.min(1, (DEFAULT_RADIUS - currentRadius) / (DEFAULT_RADIUS - MIN_RADIUS))
+      );
       const orbitTheta = autoOrbitAngle + userYaw;
-      const baseHeight = (2.65 + Math.sin(t * 0.38) * 0.22 + userPitch * 2.2) * (currentRadius / DEFAULT_RADIUS);
-      const camY = Math.max(0.42, Math.min(4.4, baseHeight));
+      const rightX = Math.cos(orbitTheta);
+      const rightZ = -Math.sin(orbitTheta);
+
+      // Shift lookAt toward the camera's right (+0.88) at wide view so the 3D skin slab
+      // and the outward-extending 3D brushed-gold stems + 3D serif callouts balance dead-center
+      // with generous margin from the right edge of the canvas!
+      const aspectCompensation = camera.aspect < 1.32 ? 1.32 / Math.max(0.88, camera.aspect) : 1.0;
+      const effectiveRadius = currentRadius * (1 + (aspectCompensation - 1) * (1 - zoomFactor));
+      const sideBalance = 1.12 * (1 - zoomFactor);
+      const focusX = rightX * sideBalance + glideX * 0.42 * zoomFactor;
+      const focusY = 0.04 + 0.14 * zoomFactor;
+      const focusZ = rightZ * sideBalance + glideZ * 0.35 * zoomFactor;
+
+      const baseHeight =
+        (2.9 + Math.sin(t * 0.38) * 0.22 + userPitch * 2.2) * (effectiveRadius / DEFAULT_RADIUS);
+      const camY = Math.max(0.45, Math.min(4.8, baseHeight));
       camera.position.set(
-        focusX + Math.sin(orbitTheta) * currentRadius,
+        focusX + Math.sin(orbitTheta) * effectiveRadius,
         camY,
-        focusZ + Math.cos(orbitTheta) * currentRadius
+        focusZ + Math.cos(orbitTheta) * effectiveRadius
       );
       camera.lookAt(focusX, focusY, focusZ);
-      camera.updateMatrixWorld();
+
+      // Smoothly anchor the 3 physical 3D anatomical callouts on the EXACT outermost camera-right
+      // 3D silhouette corner of the skin slab (using tanh for silky 360° corner-to-corner glide
+      // with zero jump and zero skin overlap!).
+      const cornerX = Math.tanh(rightX * 6) * (halfW + 0.06);
+      const cornerZ = Math.tanh(rightZ * 6) * (halfD + 0.06);
+
+      layerCallouts.forEach((lc, i) => {
+        const isAct = cfg.activeLayerIndex === i;
+        lc.group.position.set(cornerX, DEPTH_LAYERS[i].y3d, cornerZ);
+        lc.group.rotation.y = orbitTheta;
+        const haloScale = isAct ? 1.0 + 0.26 * Math.sin(t * 4.5) : 0.85;
+        lc.halo.scale.setScalar(haloScale);
+        lc.halo.rotation.z = t * 0.6;
+        // Subtle 3D perspective breathing & active prominence
+        const textScale = isAct ? 1.04 : 0.94;
+        lc.labelPlane.scale.setScalar(textScale);
+      });
+
+      // Position 4th physical 3D callout rising gracefully above-left of the gliding LumiaSculpt™ wand
+      wandCalloutGroup.position.set(glideX, skinSurfaceY + 0.68, glideZ);
+      wandCalloutGroup.rotation.y = orbitTheta;
 
       renderer.render(scene, camera);
-
-      // Update 60 FPS 3D-projected spatial callout pins & leader lines (zero React re-renders)
-      const cw = mount.clientWidth;
-      const ch = mount.clientHeight;
-      if (cw > 0 && ch > 0) {
-        const isCompact = cw < 460;
-        const rightX = Math.cos(orbitTheta);
-        const rightZ = -Math.sin(orbitTheta);
-        const tx = Math.abs(rightX) > 1e-4 ? halfW / Math.abs(rightX) : 99;
-        const tz = Math.abs(rightZ) > 1e-4 ? halfD / Math.abs(rightZ) : 99;
-        const edgeDist = Math.min(tx, tz) * 0.96;
-
-        const labelWidth = isCompact ? 112 : 164;
-        const minGap = isCompact ? 34 : 48;
-        const rawYs: number[] = [];
-        const anchors: { x0: number; y0: number; x1: number; y1: number }[] = [];
-
-        DEPTH_LAYERS.forEach((layer, i) => {
-          projA.set(rightX * edgeDist, layer.y3d, rightZ * edgeDist).project(camera);
-          const x0 = (projA.x * 0.5 + 0.5) * cw;
-          const y0 = (-projA.y * 0.5 + 0.5) * ch;
-
-          // Push endpoint cleanly to the right of the 3D cutaway silhouette
-          const x1 = Math.min(cw - labelWidth - 6, Math.max(x0 + (isCompact ? 20 : 38), cw - labelWidth - (isCompact ? 8 : 16)));
-          const y1 = Math.max(24, Math.min(ch - 26, y0 + (i - 1) * (isCompact ? 4 : 8)));
-          anchors.push({ x0, y0, x1, y1 });
-          rawYs.push(y1);
-        });
-
-        // Prevent vertical overlap between the 3 biological layer labels at any pitch/zoom
-        for (let i = 1; i < rawYs.length; i++) {
-          if (rawYs[i] < rawYs[i - 1] + minGap) {
-            rawYs[i] = rawYs[i - 1] + minGap;
-          }
-        }
-        const overflow = rawYs[rawYs.length - 1] - (ch - 22);
-        if (overflow > 0) {
-          for (let i = 0; i < rawYs.length; i++) rawYs[i] -= overflow;
-        }
-
-        DEPTH_LAYERS.forEach((_, i) => {
-          const { x0, y0, x1 } = anchors[i];
-          const y1 = Math.max(18, Math.min(ch - 20, rawYs[i]));
-          const clampedX0 = Math.max(8, Math.min(cw - 8, x0));
-          const clampedY0 = Math.max(8, Math.min(ch - 8, y0));
-
-          const line = pinLineRefs.current[i];
-          const dot = pinDotRefs.current[i];
-          const ring = pinRingRefs.current[i];
-          const lbl = pinLabelRefs.current[i];
-
-          if (line) {
-            line.setAttribute("x1", clampedX0.toFixed(1));
-            line.setAttribute("y1", clampedY0.toFixed(1));
-            line.setAttribute("x2", x1.toFixed(1));
-            line.setAttribute("y2", y1.toFixed(1));
-          }
-          if (dot) {
-            dot.setAttribute("cx", clampedX0.toFixed(1));
-            dot.setAttribute("cy", clampedY0.toFixed(1));
-          }
-          if (ring) {
-            ring.setAttribute("cx", clampedX0.toFixed(1));
-            ring.setAttribute("cy", clampedY0.toFixed(1));
-          }
-          if (lbl) {
-            lbl.style.transform = `translate3d(${(x1 + 6).toFixed(1)}px, ${y1.toFixed(1)}px, 0) translateY(-50%)`;
-          }
-        });
-
-        // 4th 3D Callout pinned dynamically to the gliding LumiaSculpt™ chrome head (upper-left)
-        projB.set(glideX, skinSurfaceY + 0.24, glideZ).project(camera);
-        const wx0 = Math.max(12, Math.min(cw - 12, (projB.x * 0.5 + 0.5) * cw));
-        const wy0 = Math.max(14, Math.min(ch - 14, (-projB.y * 0.5 + 0.5) * ch));
-        const wx1 = Math.max(isCompact ? 96 : 138, Math.min(wx0 - (isCompact ? 22 : 42), cw * 0.44));
-        const wy1 = Math.max(22, Math.min(ch * 0.42, wy0 - (isCompact ? 18 : 28)));
-
-        if (wandLineRef.current) {
-          wandLineRef.current.setAttribute("x1", wx0.toFixed(1));
-          wandLineRef.current.setAttribute("y1", wy0.toFixed(1));
-          wandLineRef.current.setAttribute("x2", wx1.toFixed(1));
-          wandLineRef.current.setAttribute("y2", wy1.toFixed(1));
-        }
-        if (wandDotRef.current) {
-          wandDotRef.current.setAttribute("cx", wx0.toFixed(1));
-          wandDotRef.current.setAttribute("cy", wy0.toFixed(1));
-        }
-        if (wandLabelRef.current) {
-          wandLabelRef.current.style.transform = `translate3d(${(wx1 - 6).toFixed(1)}px, ${wy1.toFixed(1)}px, 0) translate(-100%, -50%)`;
-        }
-      }
     };
     loop();
 
@@ -1894,6 +2081,8 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
           mat.dispose();
         }
       });
+      calloutTextures.forEach((t) => t.dispose());
+      pinGoldMatBase.dispose();
       skinAlbedo.dispose();
       skinNormal.dispose();
       skinRoughness.dispose();
@@ -1968,132 +2157,12 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
         </div>
       </div>
 
-      {/* 100% Frameless Transparent 3D Canvas + Real-Time 3D-Projected Anatomical Callout Legend */}
-      <div className="relative h-[265px] sm:h-[345px] lg:h-[490px] w-full">
-        <div
-          ref={mountRef}
-          className="h-full w-full cursor-grab active:cursor-grabbing touch-none"
-          title="Glissez pour pivoter • Molette ou 2 doigts pour zoomer dans l'épiderme"
-        />
-
-        {/* Crisp 3D-to-2D Projected Leader Lines & Anchor Pins (SVG) */}
-        <svg
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
-        >
-          {/* Gliding LumiaSculpt™ Head Pointer */}
-          <line
-            ref={wandLineRef}
-            stroke={cfg.css}
-            strokeWidth="1.25"
-            strokeOpacity="0.65"
-            strokeDasharray="3 3"
-          />
-          <circle
-            ref={wandDotRef}
-            r="3.5"
-            fill={cfg.css}
-            stroke="#FFFFFF"
-            strokeWidth="1.5"
-          />
-
-          {/* 3 Biological Skin Layer Pointers (Épiderme, Derme & Collagène, Muscles Faciaux) */}
-          {DEPTH_LAYERS.map((layer, idx) => {
-            const isActive = cfg.activeLayerIndex === idx;
-            const accent = isActive ? cfg.css : "#8E776C";
-            return (
-              <g key={layer.name}>
-                <line
-                  ref={(el) => {
-                    pinLineRefs.current[idx] = el;
-                  }}
-                  stroke={accent}
-                  strokeWidth={isActive ? "1.6" : "1.1"}
-                  strokeOpacity={isActive ? "0.9" : "0.48"}
-                />
-                <circle
-                  ref={(el) => {
-                    pinRingRefs.current[idx] = el;
-                  }}
-                  r={isActive ? "7.5" : "5"}
-                  fill="none"
-                  stroke={accent}
-                  strokeWidth="1.2"
-                  strokeOpacity={isActive ? "0.48" : "0.22"}
-                />
-                <circle
-                  ref={(el) => {
-                    pinDotRefs.current[idx] = el;
-                  }}
-                  r={isActive ? "3.8" : "2.8"}
-                  fill={isActive ? cfg.css : layer.swatch}
-                  stroke="#FFFFFF"
-                  strokeWidth="1.4"
-                />
-              </g>
-            );
-          })}
-        </svg>
-
-        {/* Floating Retina 3D Callout Labels (Zero Heavy Boxes — Whisper-Light Frosted Glass) */}
-        <div
-          ref={wandLabelRef}
-          className="pointer-events-none absolute top-0 left-0 will-change-transform text-right"
-        >
-          <div className="inline-flex flex-col items-end rounded-lg bg-[#FFFDFB]/82 px-2 py-1 backdrop-blur-sm">
-            <span className="text-[10px] sm:text-[11px] font-bold leading-none text-[#181312] whitespace-nowrap">
-              Tête LumiaSculpt™
-            </span>
-            <span
-              className="mt-0.5 text-[9px] sm:text-[10px] font-semibold leading-none whitespace-nowrap"
-              style={{ color: cfg.css }}
-            >
-              {cfg.shortLabel === "EMS 45°" ? "EMS + 45 °C" : cfg.wavelength.replace(" + Sonique", "")}
-            </span>
-          </div>
-        </div>
-
-        {DEPTH_LAYERS.map((layer, idx) => {
-          const isActive = cfg.activeLayerIndex === idx;
-          return (
-            <div
-              key={layer.name}
-              ref={(el) => {
-                pinLabelRefs.current[idx] = el;
-              }}
-              className="pointer-events-none absolute top-0 left-0 will-change-transform"
-            >
-              <div
-                className={`rounded-lg px-2 py-1 backdrop-blur-sm transition-all duration-300 ${
-                  isActive
-                    ? "bg-white/92 shadow-[0_6px_18px_-8px_rgba(24,19,18,0.22)] ring-1 ring-[#EFE1DA]"
-                    : "bg-[#FFFDFB]/72 opacity-80"
-                }`}
-              >
-                <div className="flex items-baseline gap-1.5 whitespace-nowrap">
-                  <span
-                    className={`text-[10px] sm:text-[11px] leading-none ${
-                      isActive ? "font-bold text-[#181312]" : "font-semibold text-[#5C4E48]"
-                    }`}
-                  >
-                    <span className="sm:hidden">{layer.shortName}</span>
-                    <span className="hidden sm:inline">{layer.name}</span>
-                  </span>
-                  <span
-                    className="text-[9px] font-mono font-semibold leading-none"
-                    style={{ color: isActive ? cfg.css : "#8E776C" }}
-                  >
-                    {layer.depth}
-                  </span>
-                </div>
-                <p className="hidden sm:block mt-0.5 text-[9.5px] leading-tight text-[#78655E] whitespace-nowrap">
-                  {layer.detail}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {/* 100% Frameless Transparent 3D Canvas — True 3D Anatomical Legend Rendered Inside the 3D Scene */}
+      <div
+        ref={mountRef}
+        className="relative h-[265px] sm:h-[355px] lg:h-[495px] w-full cursor-grab active:cursor-grabbing touch-none"
+        title="Glissez pour pivoter • Molette ou 2 doigts pour zoomer dans l'épiderme"
+      />
 
       {/* Minimal active action summary line on desktop (the 3D pins themselves now serve as the live anatomical legend!) */}
       <div className="pointer-events-none hidden lg:flex items-center justify-center gap-2 border-t border-[#EFE1DA]/80 pt-2.5 text-[11px]">

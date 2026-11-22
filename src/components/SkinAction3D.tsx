@@ -161,11 +161,11 @@ export function SkinAction3D({ activeMode }: Props) {
 
     // 3D Collagen Fiber Network inside the Dermis (illuminated during 630nm Red LED)
     const collagenMat = new THREE.MeshStandardMaterial({
-      color: 0xf2d1b3,
-      emissive: new THREE.Color(0xe63950),
-      emissiveIntensity: 0.35,
-      roughness: 0.3,
-      metalness: 0.2,
+      color: 0xd99b82,
+      emissive: new THREE.Color(0xd92b45),
+      emissiveIntensity: 0.45,
+      roughness: 0.28,
+      metalness: 0.15,
     });
     const collagenGroup = new THREE.Group();
     collagenGroup.position.y = -0.28;
@@ -282,18 +282,18 @@ export function SkinAction3D({ activeMode }: Props) {
     electrode.position.y = -0.085;
     wandHead.add(electrode);
 
-    // Volumetric penetrating light cone beneath the head
+    // Volumetric penetrating light cone beneath the head (NormalBlending so colors stay vivid on light spa backdrop)
     const beamTex = makeBeamTexture();
     const beamMat = new THREE.MeshBasicMaterial({
       map: beamTex,
-      color: 0xe63950,
+      color: 0xe02845,
       transparent: true,
-      opacity: 0.42,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.48,
+      blending: THREE.NormalBlending,
       depthWrite: false,
       side: THREE.DoubleSide,
     });
-    const beamGeo = new THREE.CylinderGeometry(0.42, 0.95, 1.5, 48, 1, true);
+    const beamGeo = new THREE.CylinderGeometry(0.42, 0.98, 1.5, 48, 1, true);
     beamGeo.translate(0, -0.75, 0);
     const beamMesh = new THREE.Mesh(beamGeo, beamMat);
     beamMesh.position.y = -0.08;
@@ -304,27 +304,27 @@ export function SkinAction3D({ activeMode }: Props) {
     wandHead.add(headLight);
 
     // Expanding surface sonic / EMS rings on the epidermis
-    const ringGeo = new THREE.RingGeometry(0.35, 0.39, 64);
+    const ringGeo = new THREE.RingGeometry(0.34, 0.4, 64);
     ringGeo.rotateX(-Math.PI / 2);
     const pulseRings = Array.from({ length: 3 }, () => {
       const m = new THREE.Mesh(
         ringGeo,
         new THREE.MeshBasicMaterial({
-          color: 0x26a671,
+          color: 0x1e9462,
           transparent: true,
           opacity: 0,
-          blending: THREE.AdditiveBlending,
+          blending: THREE.NormalBlending,
           depthWrite: false,
           side: THREE.DoubleSide,
         })
       );
-      m.position.y = 0.37;
+      m.position.y = 0.39;
       root.add(m);
       return m;
     });
 
     // Biological micro-particles (drainage flow / purifying ions / EMS sparks)
-    const pCount = 90;
+    const pCount = 95;
     const pPos = new Float32Array(pCount * 3);
     const pOffsets = new Float32Array(pCount);
     for (let i = 0; i < pCount; i++) {
@@ -336,11 +336,11 @@ export function SkinAction3D({ activeMode }: Props) {
     const pGeo = new THREE.BufferGeometry();
     pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
     const pMat = new THREE.PointsMaterial({
-      size: 0.055,
-      color: 0xe63950,
+      size: 0.075,
+      color: 0xe02845,
       transparent: true,
-      opacity: 0.7,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.85,
+      blending: THREE.NormalBlending,
       depthWrite: false,
     });
     const particles = new THREE.Points(pGeo, pMat);

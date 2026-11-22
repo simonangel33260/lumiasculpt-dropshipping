@@ -637,8 +637,9 @@ export function ProductHero3D() {
       camera.updateProjectionMatrix();
       isMobile = w < 900;
       if (isMobile) {
-        defaultPos.set(0.15, -1.18, 0);
-        defaultScale = 0.52;
+        // Seated squarely on the sunlit travertine tabletop right beside the orchid vase
+        defaultPos.set(0.18, -0.74, 0);
+        defaultScale = 0.45;
       } else {
         // Seated proportionally over the travertine vanity counter (right side of room)
         defaultPos.set(2.05, -0.18, 0);
@@ -937,17 +938,18 @@ export function ProductHero3D() {
       className="relative w-full overflow-hidden border-b border-[#E8DDD2] bg-[#EFE3D4] text-[#1E1916] [content-visibility:auto] [contain-intrinsic-size:auto_none_auto_760px]"
     >
       {/* Architectural Parisian Spa / Institut Background Image with 3D Parallax */}
+      {/* Mobile crops directly onto the sunlit travertine vanity tabletop + orchid vase (74% X, 78% Y) */}
       <div
         ref={bgRef}
-        className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat will-change-transform"
+        className="pointer-events-none absolute inset-0 bg-cover bg-[74%_78%] md:bg-center bg-no-repeat will-change-transform"
         style={{
           backgroundImage: `url('/images/spa-institut-bg.jpg')`,
           transform: "scale(1.06)",
         }}
       />
 
-      {/* Soft sunlit silk veil only on the left so the right side reveals the real travertine table */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#FCF8F3]/92 via-[#F8EFE6]/58 to-transparent" />
+      {/* Soft sunlit silk veil: top-down on mobile so the travertine desk at bottom stays crisp & clear; left-to-right on desktop */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFDFB]/94 via-[#FFFDFB]/68 via-45% to-transparent md:bg-gradient-to-r md:from-[#FCF8F3]/92 md:via-[#F8EFE6]/58 md:to-transparent" />
 
       {/* Directional warm morning sunbeam from left window across the scene */}
       <div
@@ -958,14 +960,14 @@ export function ProductHero3D() {
         }}
       />
 
-      <div className="relative mx-auto h-[88svh] min-h-[650px] max-h-[880px] max-w-[1600px]">
+      <div className="relative mx-auto h-[720px] sm:h-[760px] md:h-[88svh] md:min-h-[650px] md:max-h-[880px] max-w-[1600px]">
         {/* Interactive 3D Canvas */}
         <div ref={mountRef} className="absolute inset-0 z-10" />
 
         {/* Left Editorial Column */}
-        <div className="pointer-events-none relative z-20 mx-auto flex h-full max-w-6xl px-5 pt-8 md:items-center md:pt-0">
-          <div className="max-w-xl space-y-5">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#D9C7B8] bg-white/85 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7D5A44] shadow-2xs backdrop-blur-md">
+        <div className="pointer-events-none relative z-20 mx-auto flex h-full max-w-6xl px-5 pt-5 md:items-center md:pt-0">
+          <div className="max-w-xl space-y-3 md:space-y-5">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#EAD9D4] bg-white/90 px-3 py-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7D5A44] shadow-2xs backdrop-blur-md">
               <span
                 className="h-2 w-2 rounded-full"
                 style={{ backgroundColor: active.css }}
@@ -973,27 +975,27 @@ export function ProductHero3D() {
               Institut LumiaSculpt™ • Paris
             </span>
 
-            <h1 className="font-[family-name:var(--font-serif)] text-4xl font-bold leading-[1.03] tracking-tight text-[#181312] sm:text-6xl">
+            <h1 className="font-[family-name:var(--font-serif)] text-[32px] font-bold leading-[1.04] tracking-tight text-[#181312] sm:text-5xl md:text-6xl">
               Le soin cabine expert,{" "}
               <span className="italic text-[#C8465A]">dans votre rituel du soir.</span>
             </h1>
 
-            <p className="max-w-md text-sm leading-relaxed text-[#4E443E] sm:text-base">
+            <p className="max-w-md text-[13px] leading-relaxed text-[#4E443E] sm:text-base">
               Micro-courants EMS, luminothérapie LED et chaleur douce à 45 °C réunis dans un
               écrin nacré pour raffermir, lisser et illuminer votre peau en 5 minutes.
             </p>
 
-            <div className="pointer-events-auto flex flex-wrap items-center gap-3 pt-1">
+            <div className="pointer-events-auto flex flex-wrap items-center gap-2.5 md:gap-3 pt-0.5 md:pt-1">
               <a
                 href="#commander"
-                className="rounded-full bg-gradient-to-r from-[#C8465A] to-[#A83247] px-6 py-3.5 text-sm font-bold text-white shadow-[0_12px_28px_-8px_rgba(200,70,90,0.52)] transition hover:brightness-105"
+                className="rounded-full bg-gradient-to-r from-[#C8465A] to-[#A83247] px-5 md:px-6 py-2.5 md:py-3.5 text-xs md:text-sm font-bold text-white shadow-[0_12px_28px_-8px_rgba(200,70,90,0.52)] transition hover:brightness-105"
               >
                 Découvrir l&apos;offre — dès 49,90 €
               </a>
               <button
                 type="button"
                 onClick={() => setExploded((v) => !v)}
-                className={`rounded-full border px-5 py-3.5 text-sm font-semibold transition backdrop-blur-md ${
+                className={`rounded-full border px-4 md:px-5 py-2.5 md:py-3.5 text-xs md:text-sm font-semibold transition backdrop-blur-md ${
                   exploded
                     ? "border-[#C8465A] bg-[#C8465A] text-white"
                     : "border-[#DFC7CC] bg-white/88 text-[#181312] hover:bg-white"
@@ -1045,20 +1047,17 @@ export function ProductHero3D() {
           </div>
         </div>
 
-        {/* Interactive 3D Controls Bar (Top Right of Hero) */}
-        <div className="pointer-events-auto absolute right-5 top-5 z-20 flex flex-wrap items-center gap-2 rounded-full border border-[#DFD0C1] bg-white/85 px-3.5 py-1.5 text-xs font-medium text-[#4A3F38] shadow-sm backdrop-blur-md">
-          <span className="hidden sm:inline text-[11px] text-[#6E6056]">
+        {/* Interactive 3D Controls Bar: visible right above sticky bottom bar on mobile, top-right on desktop */}
+        <div className="pointer-events-auto absolute bottom-[82px] right-3 md:bottom-auto md:right-5 md:top-5 z-20 flex items-center gap-2 rounded-full border border-[#E6D6CF] bg-white/90 px-2.5 md:px-3.5 py-1.5 text-xs font-medium text-[#4A3F38] shadow-sm backdrop-blur-md">
+          <span className="hidden md:inline text-[11px] text-[#6E6056]">
             ↻ Glissez pour incliner &amp; tourner • Clic droit / 2 doigts : déplacer sur la table
           </span>
-          <span className="sm:hidden text-[11px] text-[#6E6056]">
-            ↻ 1 doigt : incliner 3D • 2 doigts : déplacer
-          </span>
-          <div className="flex items-center gap-1 border-l border-[#E2D4C6] pl-2">
+          <div className="flex items-center gap-1 md:border-l md:border-[#E2D4C6] md:pl-2">
             <button
               type="button"
               onClick={() => controlsRef.current?.zoomIn()}
               aria-label="Zoomer"
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F5ECE4] text-xs font-bold hover:bg-[#E8D8C9]"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F7ECE8] text-xs font-bold hover:bg-[#ECD9D2]"
             >
               +
             </button>
@@ -1066,7 +1065,7 @@ export function ProductHero3D() {
               type="button"
               onClick={() => controlsRef.current?.zoomOut()}
               aria-label="Dézoomer"
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F5ECE4] text-xs font-bold hover:bg-[#E8D8C9]"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F7ECE8] text-xs font-bold hover:bg-[#ECD9D2]"
             >
               −
             </button>
@@ -1076,9 +1075,11 @@ export function ProductHero3D() {
                 setExploded(false);
                 controlsRef.current?.reset();
               }}
-              className="rounded-full bg-[#F5ECE4] px-2.5 py-1 text-[11px] font-semibold hover:bg-[#E8D8C9]"
+              aria-label="Réinitialiser"
+              className="rounded-full bg-[#F7ECE8] px-2 md:px-2.5 py-1 text-[11px] font-semibold hover:bg-[#ECD9D2]"
             >
-              Réinitialiser
+              <span className="md:hidden">↺</span>
+              <span className="hidden md:inline">Réinitialiser</span>
             </button>
           </div>
         </div>

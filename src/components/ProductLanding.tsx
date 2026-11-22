@@ -233,6 +233,7 @@ export function ProductLanding({ initialStock }: Props) {
     initialStock.variants[0]?.variantId ?? ""
   );
   const [showLifestyleInHero, setShowLifestyleInHero] = useState(false);
+  const [ritualVideo, setRitualVideo] = useState<"soiree" | "demo">("soiree");
   const [activeSynergy, setActiveSynergy] = useState<SynergyModeId>(0);
   const [sliderPos, setSliderPos] = useState(52);
   const [selectedPackQty, setSelectedPackQty] = useState<PackOption["quantity"]>(2);
@@ -777,20 +778,64 @@ export function ProductLanding({ initialStock }: Props) {
           </div>
         </section>
 
-        {/* 5. Lifestyle Ritual Section (editorial hairline steps) */}
+        {/* 5. Lifestyle Ritual Section (featured evening sofa 10s video + editorial hairline steps) */}
         <section id="rituel" className="mx-auto max-w-6xl px-4 py-16 sm:py-24">
           <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
-            <div className="lg:col-span-6 overflow-hidden rounded-2xl bg-black shadow-[0_24px_60px_-24px_rgba(48,32,22,0.28)]">
-              <video
-                src="/videos/product-demo.mp4"
-                poster="/images/lifestyle-usage.jpg"
-                controls
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="aspect-video w-full object-cover"
-              />
+            <div className="lg:col-span-6 space-y-3">
+              <div className="relative overflow-hidden rounded-2xl bg-[#181312] shadow-[0_24px_60px_-24px_rgba(48,32,22,0.32)]">
+                <video
+                  key={ritualVideo}
+                  src={
+                    ritualVideo === "soiree"
+                      ? "/videos/rituel-soiree.mp4"
+                      : "/videos/product-demo.mp4"
+                  }
+                  poster={
+                    ritualVideo === "soiree"
+                      ? "/images/rituel-soiree-poster.jpg"
+                      : "/images/lifestyle-usage.jpg"
+                  }
+                  controls
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="aspect-video w-full object-cover"
+                />
+                {ritualVideo === "soiree" && (
+                  <span className="pointer-events-none absolute top-3.5 left-3.5 rounded-full bg-[#181312]/70 px-3 py-1 text-[10px] font-medium tracking-wide text-[#FFF8F5] backdrop-blur-md">
+                    ✦ 5 min le soir devant la télé
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between px-1 text-[11px]">
+                <div className="inline-flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setRitualVideo("soiree")}
+                    className={`border-b-2 pb-1 font-semibold transition ${
+                      ritualVideo === "soiree"
+                        ? "border-[#C8465A] text-[#181312]"
+                        : "border-transparent text-[#8B7670] hover:text-[#181312]"
+                    }`}
+                  >
+                    Rituel du soir (10 s)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRitualVideo("demo")}
+                    className={`border-b-2 pb-1 font-semibold transition ${
+                      ritualVideo === "demo"
+                        ? "border-[#C8465A] text-[#181312]"
+                        : "border-transparent text-[#8B7670] hover:text-[#181312]"
+                    }`}
+                  >
+                    Démonstration complète
+                  </button>
+                </div>
+                <span className="text-[10px] text-[#8B7670]">5 min/jour • Sans contrainte</span>
+              </div>
             </div>
 
             <div className="lg:col-span-6 space-y-6">

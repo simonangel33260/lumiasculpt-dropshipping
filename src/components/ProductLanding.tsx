@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ProductHero3D } from "./ProductHero3D";
+import { SkinAction3D, type SynergyModeId } from "./SkinAction3D";
 import { useState } from "react";
 import {
   PACK_OPTIONS,
@@ -23,58 +24,89 @@ const CLINICAL_METRICS = [
 
 const LED_MODES = [
   {
+    id: 0 as SynergyModeId,
     code: "630 nm",
-    eyebrow: "Photobiomodulation Rouge",
-    image: "/images/synergy-red.jpg",
-    imageAlt: "Peau lumineuse baignée de lumière rouge 630 nm sur l'ovale du visage et le cou",
+    eyebrow: "Lumière Rouge",
     orbBg: "from-[#FBE4E7] to-[#F5C6CE]",
     orbRing: "border-[#EAB0BA]",
     orbText: "text-[#A63446]",
     dot: "bg-[#C83E52]",
-    benefit: "Stimulation du collagène & ovale raffermi",
+    benefit: "Collagène & ovale raffermi",
     title: "Fermeté & Anti-Relâchement",
-    desc: "Pénètre délicatement le derme pour relancer l'élasticité naturelle, lisser les plis horizontaux du cou et redessiner la ligne mandibulaire.",
+    desc: "Pénètre jusqu'au derme pour stimuler les fibres de collagène, lisser le cou et redessiner l'ovale.",
   },
   {
+    id: 1 as SynergyModeId,
     code: "520 nm",
     eyebrow: "Lumière Verte & Sonique",
-    image: "/images/synergy-green.jpg",
-    imageAlt: "Pommette hydratée avec gouttes de sérum et reflet vert apaisant",
     orbBg: "from-[#E3F3EB] to-[#C6E6D6]",
     orbRing: "border-[#A7D7C0]",
     orbText: "text-[#1E7552]",
     dot: "bg-[#229466]",
-    benefit: "Drainage lymphatique & coup d'éclat matinal",
+    benefit: "Drainage & éclat matinal",
     title: "Drainage & Teint Lumineux",
-    desc: "Associée aux micro-vibrations à 7 000 tr/min, elle décongestionne les traits au réveil, atténue les signes de fatigue et ravive l'éclat.",
+    desc: "Les vibrations à 7 000 tr/min décongestionnent les traits au réveil et stimulent la microcirculation.",
   },
   {
+    id: 2 as SynergyModeId,
     code: "465 nm",
-    eyebrow: "Spectre Bleu Apaisant",
-    image: "/images/synergy-blue.jpg",
-    imageAlt: "Grain de peau lisse et velouté sous lumière bleue purifiante 465 nm",
+    eyebrow: "Spectre Bleu Purifiant",
     orbBg: "from-[#E4F0FB] to-[#C8E0F7]",
     orbRing: "border-[#AACDF0]",
     orbText: "text-[#2563A6]",
     dot: "bg-[#3178C6]",
-    benefit: "Grain de peau affiné & pores resserrés",
-    title: "Pureté & Peau Apaisée",
-    desc: "Purifie la surface cutanée en douceur, calme les rougeurs diffuses et aide à lisser visiblement les irrégularités du grain de peau.",
+    benefit: "Pores resserrés & peau apaisée",
+    title: "Pureté & Grain de Peau",
+    desc: "Cible l'épiderme en surface pour apaiser les rougeurs diffuses et affiner visiblement le grain de peau.",
   },
   {
-    code: "45 °C",
-    eyebrow: "Micro-Courants EMS & Thermie",
-    image: "/images/synergy-warm.jpg",
-    imageAlt: "Goutte de sérum doré glissant sur la peau chaude du cou",
+    id: 3 as SynergyModeId,
+    code: "EMS 45°",
+    eyebrow: "Micro-Courants & Thermie",
     orbBg: "from-[#FBF0E1] to-[#F3DAC0]",
     orbRing: "border-[#E3BF99]",
     orbText: "text-[#9A5840]",
     dot: "bg-[#C46A34]",
-    benefit: "Tonification douce & absorption des sérums ×2",
-    title: "Effet Lift & Infusion de Soin",
-    desc: "La chaleur constante à 45 °C ouvre les pores pour décupler vos sérums tandis que de fines impulsions EMS réveillent le tonus du visage et du cou.",
+    benefit: "Tonification musculaire & lift",
+    title: "Effet Lift & Chaleur 45 °C",
+    desc: "Des impulsions EMS douces tonifient les muscles profonds pendant que la chaleur 45 °C détend les traits.",
   },
 ];
+
+function SynergyIcon({ id }: { id: SynergyModeId }) {
+  if (id === 0) {
+    // 630nm deep radiant light waves
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (id === 1) {
+    // 520nm sonic drainage ripples
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
+        <path d="M3 8c2.5-2 5.5-2 8 0s5.5 2 8 0M3 13c2.5-2 5.5-2 8 0s5.5 2 8 0M3 18c2.5-2 5.5-2 8 0s5.5 2 8 0" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (id === 2) {
+    // 465nm pure skin sparkle
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
+        <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z" strokeLinejoin="round" />
+        <path d="M18.5 16l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  // EMS + 45°C micro-current lift pulse
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
+      <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 const TIMELINE_RESULTS = [
   {
@@ -201,6 +233,7 @@ export function ProductLanding({ initialStock }: Props) {
     initialStock.variants[0]?.variantId ?? ""
   );
   const [showLifestyleInHero, setShowLifestyleInHero] = useState(false);
+  const [activeSynergy, setActiveSynergy] = useState<SynergyModeId>(0);
   const [selectedPackQty, setSelectedPackQty] = useState<PackOption["quantity"]>(2);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -286,31 +319,34 @@ export function ProductLanding({ initialStock }: Props) {
 
   return (
     <div className="relative min-h-screen bg-[#FAF5EF] text-[#1E1916] font-[family-name:var(--font-sans)] pb-24 md:pb-16 overflow-x-clip">
-      {/* Subtle Sensory Skin-Silk & Organic Contour Watermark across the page */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 opacity-[0.06] mix-blend-multiply bg-cover bg-center"
-        style={{
-          backgroundImage: `url('/images/synergy-red.jpg')`,
-          filter: "blur(24px) saturate(0.85)",
-        }}
-      />
+      {/* Discreet Editorial Facial Profile Line-Art Watermark */}
       <svg
         aria-hidden="true"
         viewBox="0 0 1440 900"
         fill="none"
-        className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-[0.22]"
-        preserveAspectRatio="none"
+        className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-[0.16]"
+        preserveAspectRatio="xMidYMid slice"
       >
+        {/* Minimalist single-line feminine profile (forehead, nose, lips, chin, jawline & neck) on right side */}
         <path
-          d="M-120 260 C 260 120, 560 440, 980 280 C 1220 190, 1400 260, 1560 180"
-          stroke="#D4B59E"
-          strokeWidth="1.2"
+          d="M1140 60 C1105 140, 1085 215, 1098 280 C1104 310, 1062 365, 1052 392 C1046 408, 1068 418, 1082 422 C1065 445, 1068 468, 1085 478 C1072 496, 1078 525, 1102 536 C1132 550, 1178 545, 1218 518 C1245 500, 1264 468, 1272 430 M1158 542 C1155 620, 1138 710, 1078 785 C1038 835, 975 865, 910 885"
+          stroke="#C2A085"
+          strokeWidth="1.4"
+          strokeLinecap="round"
         />
+        {/* Delicate closed eye & brow stroke */}
         <path
-          d="M-100 680 C 320 540, 680 820, 1140 620 C 1340 530, 1440 610, 1560 540"
-          stroke="#DFC4B0"
-          strokeWidth="1"
+          d="M1125 322 C1148 310, 1178 314, 1196 326 M1132 354 C1150 364, 1174 362, 1188 352"
+          stroke="#C2A085"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+        {/* Soft opposing silk contour wave on left */}
+        <path
+          d="M-80 220 C160 150, 310 340, 210 540 C140 680, 40 760, -60 830"
+          stroke="#D4B8A2"
+          strokeWidth="1.1"
+          strokeLinecap="round"
         />
       </svg>
 
@@ -803,88 +839,101 @@ export function ProductLanding({ initialStock }: Props) {
           </div>
         </section>
 
-        {/* 6. 4 Synergies Institut — Luminous Editorial Showcase with Macro Skin Photography */}
+        {/* 6. 4 Synergies Institut — Interactive 3D Skin-Layer Simulation + Compact Icon Cards */}
         <section
           id="technologie"
-          className="relative overflow-hidden border-y border-[#E8DDD2] bg-gradient-to-b from-[#F5EAE0]/90 via-[#FCF7F2]/95 to-[#F4E7DC]/90 py-16 sm:py-24 text-[#1E1916]"
+          className="relative overflow-hidden border-y border-[#E8DDD2] bg-gradient-to-b from-[#F5EAE0]/85 via-[#FCF7F2]/90 to-[#F4E7DC]/85 py-16 sm:py-24 text-[#1E1916]"
         >
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(55% 45% at 50% 0%, rgba(255, 248, 242, 0.9) 0%, transparent 72%)",
-            }}
-          />
+          {/* Subtle architectural face silhouette watermark inside the section */}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 600 600"
+            fill="none"
+            className="pointer-events-none absolute -right-16 top-6 h-[520px] w-[520px] opacity-[0.14]"
+          >
+            <path
+              d="M320 55 C270 130, 250 205, 265 268 C272 296, 224 345, 214 374 C208 390, 232 400, 248 405 C230 428, 234 452, 252 462 C238 482, 245 512, 272 524 C308 540, 360 532, 402 496 M325 530 C320 565, 310 585, 290 600"
+              stroke="#B58E72"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+            <path
+              d="M292 308 C316 296, 344 300, 364 312 M298 340 C318 350, 342 348, 356 338"
+              stroke="#B58E72"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+            />
+          </svg>
 
           <div className="relative mx-auto max-w-6xl px-4">
             <div className="mx-auto max-w-2xl text-center">
               <span className="inline-flex items-center gap-2 rounded-full border border-[#DFD0C1] bg-white/85 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8C6239]">
-                Savoir-Faire Institut • Lumière &amp; Micro-Courants
+                Action Profonde • Simulation 3D sur la Peau
               </span>
               <h2 className="mt-4 font-[family-name:var(--font-serif)] text-3xl sm:text-5xl font-bold leading-[1.08] tracking-tight text-[#1E1916]">
-                4 synergies de soin cabine,{" "}
-                <span className="italic text-[#9A5840]">réunies en un seul geste.</span>
+                Comment LumiaSculpt™ agit{" "}
+                <span className="italic text-[#9A5840]">sous la surface de la peau.</span>
               </h2>
               <p className="mt-3 text-sm sm:text-base leading-relaxed text-[#5C524B]">
-                Chaque mode associe une longueur d&apos;onde LED ciblée à la douceur thermique pour
-                révéler une peau plus ferme, apaisée et lumineuse, matin et soir.
+                Cliquez sur l&apos;un des 4 modes pour observer en 3D la profondeur d&apos;action de
+                la lumière LED, des vibrations soniques et des micro-courants EMS.
               </p>
             </div>
 
-            <div className="mt-12 grid gap-7 md:grid-cols-2">
-              {LED_MODES.map((mode, idx) => (
-                <article
-                  key={mode.code}
-                  className="group relative flex flex-col overflow-hidden rounded-3xl border border-[#E7DACD] bg-white/92 shadow-xs backdrop-blur-sm transition hover:border-[#D6C2AF] hover:shadow-lg"
-                >
-                  {/* Macro Skin Editorial Photo */}
-                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#F2E5D9]">
-                    <img
-                      src={mode.image}
-                      alt={mode.imageAlt}
-                      width={960}
-                      height={600}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                    />
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1E1916]/35 via-transparent to-transparent" />
-                    <div className="absolute bottom-3.5 left-4 right-4 flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/92 backdrop-blur-md px-3 py-1 text-[11px] font-semibold text-[#1E1916] shadow-xs">
-                        <span className={`h-2 w-2 rounded-full ${mode.dot}`} />
-                        {mode.eyebrow}
-                      </span>
-                      <span className="rounded-full bg-[#1E1916]/75 backdrop-blur-md px-2.5 py-1 text-[11px] font-bold tracking-wide text-[#FAF5EF]">
-                        {mode.code}
-                      </span>
-                    </div>
-                  </div>
+            <div className="mt-12 grid gap-8 lg:grid-cols-12 lg:items-center">
+              {/* Interactive 3D Biological Skin Cutaway */}
+              <div className="lg:col-span-7">
+                <SkinAction3D activeMode={activeSynergy} />
+              </div>
 
-                  {/* Editorial Card Body */}
-                  <div className="flex flex-1 flex-col justify-between p-6 sm:p-7">
-                    <div>
-                      <div className="flex items-baseline justify-between gap-3">
-                        <h3 className="font-[family-name:var(--font-serif)] text-2xl sm:text-[26px] font-bold text-[#1E1916]">
-                          {mode.title}
-                        </h3>
-                        <span className="font-[family-name:var(--font-serif)] text-xl italic text-[#D2BFA9]">
-                          0{idx + 1}
-                        </span>
+              {/* 4 Compact Clickable Synergy Cards with Small Minimalist Icons */}
+              <div className="lg:col-span-5 space-y-3">
+                {LED_MODES.map((mode) => {
+                  const isActive = activeSynergy === mode.id;
+                  return (
+                    <button
+                      key={mode.code}
+                      type="button"
+                      onClick={() => setActiveSynergy(mode.id)}
+                      className={`w-full text-left flex items-start gap-4 rounded-2xl border p-4 sm:p-5 transition ${
+                        isActive
+                          ? "border-[#9A5840] bg-white shadow-md ring-1 ring-[#9A5840]/20"
+                          : "border-[#E6D8CA] bg-white/75 hover:bg-white hover:border-[#D4C0AD]"
+                      }`}
+                    >
+                      <div
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border bg-gradient-to-br ${mode.orbBg} ${mode.orbRing} ${mode.orbText}`}
+                      >
+                        <SynergyIcon id={mode.id} />
                       </div>
 
-                      <p className="mt-2.5 text-sm sm:text-[15px] leading-relaxed text-[#574D46]">
-                        {mode.desc}
-                      </p>
-                    </div>
-
-                    <div className="mt-5 flex items-center justify-between border-t border-[#F0E6DC] pt-4 text-xs">
-                      <span className="font-semibold text-[#8C563E]">✦ {mode.benefit}</span>
-                      <span className={`rounded-full border bg-gradient-to-br px-2.5 py-0.5 font-bold ${mode.orbBg} ${mode.orbRing} ${mode.orbText}`}>
-                        {mode.code}
-                      </span>
-                    </div>
-                  </div>
-                </article>
-              ))}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#7D6A5C]">
+                            <span className={`h-1.5 w-1.5 rounded-full ${mode.dot}`} />
+                            {mode.eyebrow}
+                          </span>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                              isActive
+                                ? "bg-[#1E1916] text-[#FAF5EF]"
+                                : "bg-[#F5ECE4] text-[#6B5B4F]"
+                            }`}
+                          >
+                            {mode.code}
+                          </span>
+                        </div>
+                        <h3 className="mt-1 font-[family-name:var(--font-serif)] text-xl font-bold text-[#1E1916]">
+                          {mode.title}
+                        </h3>
+                        <p className="mt-1 text-xs sm:text-sm leading-relaxed text-[#5C524B]">
+                          {mode.desc}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </section>

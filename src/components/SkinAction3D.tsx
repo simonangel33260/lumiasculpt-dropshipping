@@ -12,10 +12,14 @@ export type SynergyModeId = 0 | 1 | 2 | 3;
 
 interface Props {
   activeMode: SynergyModeId;
+  onSelectMode?: (mode: SynergyModeId) => void;
 }
 
 const MODE_CONFIG = [
   {
+    id: 0 as SynergyModeId,
+    shortLabel: "Rouge",
+    panelKey: "LED 630",
     color: 0xd61f42,
     glowColor: 0xff4d6d,
     sssColor: 0xff2e55,
@@ -28,6 +32,9 @@ const MODE_CONFIG = [
     activeLayerIndex: 1,
   },
   {
+    id: 1 as SynergyModeId,
+    shortLabel: "Verte",
+    panelKey: "PURETÉ",
     color: 0x0f8a5a,
     glowColor: 0x32de96,
     sssColor: 0x1ac47d,
@@ -40,6 +47,9 @@ const MODE_CONFIG = [
     activeLayerIndex: 1,
   },
   {
+    id: 2 as SynergyModeId,
+    shortLabel: "Bleue",
+    panelKey: "PORES",
     color: 0x1d68d4,
     glowColor: 0x52a5ff,
     sssColor: 0x2c82f5,
@@ -52,6 +62,9 @@ const MODE_CONFIG = [
     activeLayerIndex: 0,
   },
   {
+    id: 3 as SynergyModeId,
+    shortLabel: "EMS 45°",
+    panelKey: "LIFT EMS",
     color: 0xd96614,
     glowColor: 0xffa438,
     sssColor: 0xff7b1c,
@@ -89,6 +102,179 @@ const DEPTH_LAYERS = [
   },
 ] as const;
 
+// =========================================================================
+// EXACT LUMIASCULPT™ M8807 GEOMETRY HELPERS (identical to ProductHero3D.tsx)
+// =========================================================================
+const H_BOTTOM = -1.75;
+const H_TOP = 1.36;
+const Z_SCALE = 0.82;
+const PANEL_Y0 = -0.42;
+const PANEL_Y1 = 1.3;
+const PANEL_PHI = 1.15;
+
+function smoothStep(a: number, b: number, x: number) {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+}
+
+function handleRadius(y: number) {
+  if (y <= H_BOTTOM) return 0;
+  if (y < -1.58) {
+    const k = (y - -1.58) / (H_BOTTOM - -1.58);
+    return 0.35 * Math.sqrt(Math.max(0, 1 - k * k));
+  }
+  if (y > 0.95) {
+    const k = (y - 0.95) / (H_TOP - 0.95);
+    return 0.46 * Math.sqrt(Math.max(0, 1 - k * k));
+  }
+  return 0.35 + 0.11 * smoothStep(-1.58, 0.95, y);
+}
+
+function buildHandleProfile(y0: number, y1: number, offset: number, steps = 120) {
+  const pts: THREE.Vector2[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const y = y0 + ((y1 - y0) * i) / steps;
+    pts.push(new THREE.Vector2(Math.max(0.0001, handleRadius(y) + offset), y));
+  }
+  return pts;
+}
+
+function drawDevicePanel(ctx: CanvasRenderingContext2D, activeKey: string, activeHex: string) {
+  const W = ctx.canvas.width;
+  const H = ctx.canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const inset = W * 0.17;
+  const r = W * 0.33;
+  ctx.fillStyle = "#110F0E";
+  ctx.beginPath();
+  ctx.moveTo(inset, 0);
+  ctx.lineTo(W - inset, 0);
+  ctx.lineTo(W - inset, H - r);
+  ctx.quadraticCurveTo(W - inset, H, W / 2, H);
+  ctx.quadraticCurveTo(inset, H, inset, H - r);
+  ctx.closePath();
+  ctx.fill();
+
+  const row = (y: number) => ((PANEL_Y1 - y) / (PANEL_Y1 - PANEL_Y0)) * H;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  ctx.fillStyle = "#EFEAE4";
+  ctx.strokeStyle = "#EFEAE4";
+  ctx.lineWidth = 3;
+  const iconY = row(0.6);
+  for (let i = 0; i < 6; i++) {
+    const h = [10, 18, 26, 26, 18, 10][i];
+    ctx.fillRect(W / 2 - 84 + i * 8, iconY - h / 2, 3, h);
+    ctx.fillRect(W / 2 + 40 + i * 8, iconY - h / 2, 3, h);
+  }
+  ctx.beginPath();
+  ctx.ellipse(W / 2, iconY, 26, 17, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.font = "600 17px system-ui, sans-serif";
+  ctx.fillText("RF", W / 2, iconY + 1);
+
+  const rows: [string, string][] = [
+    ["PURETÉ", "LED 630"],
+    ["PORES", "ÉCLAT"],
+    ["SÉRUM 45°", "LIFT EMS"],
+  ];
+  const colX = [W / 2 - 62, W / 2 + 62];
+  rows.forEach((pair, ri) => {
+    const y = row(0.43 - ri * 0.13);
+    pair.forEach((label, ci) => {
+      const isActive = label === activeKey;
+      ctx.font = `${isActive ? 700 : 500} 23px system-ui, sans-serif`;
+      if (isActive) {
+        ctx.shadowColor = activeHex;
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = "#FFFFFF";
+      } else {
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#C8C2BC";
+      }
+      ctx.fillText(label, colX[ci], y);
+    });
+  });
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#C8C2BC";
+  ctx.font = "500 23px system-ui, sans-serif";
+  ctx.fillText("SOIN REGARD", W / 2, row(0.04));
+
+  ctx.font = "500 22px system-ui, sans-serif";
+  ctx.fillStyle = "#9C948E";
+  const lvlY = row(-0.1);
+  ["1", "2", "3"].forEach((l, i) => ctx.fillText(l, W / 2 - 90 + i * 52, lvlY));
+  ctx.fillStyle = "#3EE08F";
+  for (let i = 0; i < 4; i++) ctx.fillRect(W / 2 + 74, lvlY + 12 - i * 8, 18, 5);
+}
+
+function makeButtonIconTexture(kind: "vib" | "power") {
+  const c = document.createElement("canvas");
+  c.width = c.height = 128;
+  const ctx = c.getContext("2d")!;
+  ctx.fillStyle = "#EFEAE3";
+  ctx.fillRect(0, 0, 128, 128);
+  ctx.strokeStyle = "rgba(182,172,162,0.35)";
+  ctx.lineWidth = 2;
+  for (let r = 12; r < 58; r += 8) {
+    ctx.beginPath();
+    ctx.arc(64, 64, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = "#3A332E";
+  ctx.lineWidth = 6.5;
+  ctx.lineCap = "round";
+  if (kind === "power") {
+    ctx.beginPath();
+    ctx.arc(64, 68, 25, -Math.PI * 0.32, Math.PI * 1.32);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(64, 30);
+    ctx.lineTo(64, 64);
+    ctx.stroke();
+  } else {
+    [44, 56, 68].forEach((x, i) => {
+      ctx.beginPath();
+      ctx.moveTo(x, 46 + i * -2);
+      ctx.lineTo(x, 82 + i * 2);
+      ctx.stroke();
+    });
+    ctx.beginPath();
+    ctx.arc(70, 64, 16, -0.9, 0.9);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(70, 64, 28, -0.9, 0.9);
+    ctx.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+function makeElectrodeTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 512;
+  const ctx = c.getContext("2d")!;
+  const g = ctx.createRadialGradient(200, 190, 10, 256, 256, 260);
+  g.addColorStop(0, "#FFFDF9");
+  g.addColorStop(0.55, "#F2ECE4");
+  g.addColorStop(1, "#D6CBC0");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 512, 512);
+  ctx.strokeStyle = "rgba(170, 158, 146, 0.25)";
+  ctx.lineWidth = 1.5;
+  for (let r = 24; r < 250; r += 10) {
+    ctx.beginPath();
+    ctx.arc(256, 256, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 /**
  * Generates warm Parisian studio cyclorama backdrop texture for clean optical Bloom rendering.
  */
@@ -105,7 +291,6 @@ function makeStudioBackdropTexture() {
   ctx.fillStyle = lin;
   ctx.fillRect(0, 0, 512, 512);
 
-  // Warm soft studio key-light spotlight centered behind the 3D skin slab
   const rad = ctx.createRadialGradient(235, 225, 24, 256, 256, 330);
   rad.addColorStop(0, "rgba(255,252,248,0.68)");
   rad.addColorStop(0.5, "rgba(248,236,225,0.14)");
@@ -119,7 +304,7 @@ function makeStudioBackdropTexture() {
 }
 
 /**
- * Generates wet anatomical muscle albedo + tangent-space normal maps (striated myofibrils + fascia).
+ * Wet anatomical muscle albedo + tangent-space normal maps (striated myofibrils + fascia).
  */
 function makeMuscleMaps() {
   const w = 512;
@@ -140,7 +325,6 @@ function makeMuscleMaps() {
   nCtx.fillStyle = "rgb(128,128,255)";
   nCtx.fillRect(0, 0, w, h);
 
-  // Organic fibrous striations + pearlescent perimysium connective fascia
   for (let y = 0; y < h; y += 3) {
     const wave = Math.sin(y * 0.28);
     const isFascia = y % 21 === 0;
@@ -163,7 +347,6 @@ function makeMuscleMaps() {
     }
   }
 
-  // Subtle cross-striation sarcomere micro-banding
   for (let x = 0; x < w; x += 14) {
     ctx.fillStyle = "rgba(255,232,220,0.06)";
     ctx.fillRect(x, 0, 3, h);
@@ -183,9 +366,6 @@ function makeMuscleMaps() {
   return { map, normalMap };
 }
 
-/**
- * Rich volumetric vertical light cone gradient texture.
- */
 function makeBeamTexture() {
   const c = document.createElement("canvas");
   c.width = 128;
@@ -203,9 +383,6 @@ function makeBeamTexture() {
   return t;
 }
 
-/**
- * Soft 2D feathered light penetration texture (zero sharp edges on left, right, or bottom).
- */
 function makeSoftPenetrationTexture() {
   const c = document.createElement("canvas");
   c.width = 256;
@@ -223,9 +400,6 @@ function makeSoftPenetrationTexture() {
   return t;
 }
 
-/**
- * Soft radial glow sprite texture for surface light pool, particles, and contact shadow.
- */
 function makeRadialGlowTexture(innerAlpha = 1, midStop = 0.45, rgb = "255,255,255") {
   const c = document.createElement("canvas");
   c.width = 128;
@@ -242,14 +416,11 @@ function makeRadialGlowTexture(innerAlpha = 1, midStop = 0.45, rgb = "255,255,25
   return t;
 }
 
-/**
- * Scalloped biological Dermal Papillae wave separating Epidermis & Dermis.
- */
 function papillaWave(x: number) {
   return 0.08 + Math.sin(x * 7.2) * 0.048 + Math.cos(x * 13.5) * 0.015;
 }
 
-export function SkinAction3D({ activeMode }: Props) {
+export function SkinAction3D({ activeMode, onSelectMode }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mountRef = useRef<HTMLDivElement>(null);
   const modeRef = useRef<SynergyModeId>(activeMode);
@@ -263,7 +434,10 @@ export function SkinAction3D({ activeMode }: Props) {
     const mount = mountRef.current;
     if (!container || !mount) return;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      powerPreference: "high-performance",
+    });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.98;
@@ -286,7 +460,6 @@ export function SkinAction3D({ activeMode }: Props) {
     scene.environment = envTex;
     scene.environmentIntensity = 0.56;
 
-    // Load real Parisian Spa HDR-like studio reflection map asynchronously
     const texLoader = new THREE.TextureLoader();
     let spaEnvSource: THREE.Texture | null = null;
     let disposed = false;
@@ -305,7 +478,7 @@ export function SkinAction3D({ activeMode }: Props) {
       scene.environmentIntensity = 0.78;
     });
 
-    // Load Real Photographic Human Bare-Skin PBR Maps (extracted from skin-before.jpg)
+    // Real Photographic Human Bare-Skin PBR Maps
     const skinAlbedo = texLoader.load("/images/skin-macro-albedo.jpg");
     skinAlbedo.colorSpace = THREE.SRGBColorSpace;
     skinAlbedo.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
@@ -315,35 +488,35 @@ export function SkinAction3D({ activeMode }: Props) {
 
     const skinRoughness = texLoader.load("/images/skin-macro-roughness.jpg");
 
-    const camera = new THREE.PerspectiveCamera(28, 1.38, 0.1, 60);
-    camera.position.set(0.55, 2.55, 7.25);
-    camera.lookAt(0.18, -0.08, 0);
+    // Framed so the FULL authentic LumiaSculpt™ M8807 wand + entire 3D skin slab fit cleanly!
+    const camera = new THREE.PerspectiveCamera(29, 1.38, 0.1, 60);
+    camera.position.set(0.55, 2.8, 7.65);
+    camera.lookAt(0.08, 0.04, 0);
 
-    // Optical Camera Post-Processing Pipeline (subtle selective Bloom only on glowing LEDs/EMS/Fibroblasts)
+    // Optical Camera Post-Processing Pipeline (selective Bloom)
     const composer = new EffectComposer(renderer);
-    const renderPass = new RenderPass(scene, camera);
-    composer.addPass(renderPass);
+    composer.addPass(new RenderPass(scene, camera));
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(mount.clientWidth || 640, mount.clientHeight || 470),
-      0.26, // subtle luxury cinema bloom strength
-      0.52, // soft optical radius
-      0.92 // high threshold so ONLY glowing LEDs / EMS sparks / active fibroblasts bloom
+      0.24,
+      0.5,
+      0.92
     );
     composer.addPass(bloomPass);
     composer.addPass(new OutputPass());
 
-    // Cinematic Sculptural Lighting with Real Soft PCF Cast Shadows
+    // Cinematic Studio Lighting + Soft PCF Cast Shadows
     scene.add(new THREE.HemisphereLight(0xfff7f0, 0xc89a84, 0.48));
 
     const keyLight = new THREE.DirectionalLight(0xfff7ee, 1.85);
-    keyLight.position.set(-4.8, 5.4, 3.6);
+    keyLight.position.set(-4.8, 5.6, 3.8);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.set(2048, 2048);
     keyLight.shadow.camera.near = 1.0;
     keyLight.shadow.camera.far = 18.0;
-    keyLight.shadow.camera.left = -3.8;
-    keyLight.shadow.camera.right = 3.8;
-    keyLight.shadow.camera.top = 3.4;
+    keyLight.shadow.camera.left = -4.2;
+    keyLight.shadow.camera.right = 4.2;
+    keyLight.shadow.camera.top = 4.0;
     keyLight.shadow.camera.bottom = -3.0;
     keyLight.shadow.bias = -0.0005;
     keyLight.shadow.normalBias = 0.022;
@@ -354,24 +527,27 @@ export function SkinAction3D({ activeMode }: Props) {
     rimLight.position.set(5.4, 3.0, -3.8);
     scene.add(rimLight);
 
-    const frontFill = new THREE.DirectionalLight(0xf6dfd2, 0.46);
-    frontFill.position.set(1.2, 1.0, 5.5);
+    const frontFill = new THREE.DirectionalLight(0xf6dfd2, 0.5);
+    frontFill.position.set(1.2, 1.2, 5.8);
     scene.add(frontFill);
 
     const root = new THREE.Group();
-    root.rotation.y = -0.22;
-    root.rotation.x = 0.05;
+    root.rotation.y = -0.2;
+    root.rotation.x = 0.04;
     scene.add(root);
 
-    // Procedural Biological & Optical Textures
+    // Procedural Textures
     const { map: muscleMap, normalMap: muscleNormal } = makeMuscleMaps();
     const beamTex = makeBeamTexture();
     const softPenTex = makeSoftPenetrationTexture();
     const glowTex = makeRadialGlowTexture(0.95, 0.45, "255,255,255");
     const shadowTex = makeRadialGlowTexture(0.4, 0.44, "72,42,30");
     const particleTex = makeRadialGlowTexture(1, 0.36, "255,255,255");
+    const electrodeTex = makeElectrodeTexture();
+    const vibIconTex = makeButtonIconTexture("vib");
+    const pwrIconTex = makeButtonIconTexture("power");
 
-    // Soft floating studio contact shadow beneath the 3D cutaway slab
+    // Soft floating contact shadow under skin block
     const shadowPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(6.3, 3.6),
       new THREE.MeshBasicMaterial({
@@ -390,7 +566,7 @@ export function SkinAction3D({ activeMode }: Props) {
     const halfD = D / 2;
 
     // =========================================================================
-    // LAYER 1: PHOTOREALISTIC ÉPIDERME (Real Macro Skin Photo PBR + Normal + Roughness + Soft Shadows)
+    // LAYER 1: PHOTOREALISTIC ÉPIDERME (Real Macro Skin Photo PBR)
     // =========================================================================
     const epiGeo = new THREE.PlaneGeometry(W, D, 84, 48);
     epiGeo.rotateX(-Math.PI / 2);
@@ -405,7 +581,6 @@ export function SkinAction3D({ activeMode }: Props) {
         Math.cos((vz / halfD) * (Math.PI * 0.42));
       const dome = 0.065 * edgeSoft;
 
-      // 3 gentle anatomical expression micro-lines that physically plump & smooth out as the wand glides
       const g1 = Math.exp(-Math.pow((vx + 0.92 + Math.sin(vz * 1.4) * 0.13) * 4.8, 2));
       const g2 = Math.exp(-Math.pow((vx - 0.06 + Math.sin(vz * 1.6 + 0.5) * 0.14) * 5.0, 2));
       const g3 = Math.exp(-Math.pow((vx - 0.98 + Math.cos(vz * 1.3) * 0.12) * 4.8, 2));
@@ -424,9 +599,9 @@ export function SkinAction3D({ activeMode }: Props) {
       roughnessMap: skinRoughness,
       roughness: 0.72,
       metalness: 0.0,
-      clearcoat: 0.28, // healthy lipid film sheen
+      clearcoat: 0.28,
       clearcoatRoughness: 0.34,
-      sheen: 0.72, // realistic vellus peach-fuzz grazing scatter
+      sheen: 0.72,
       sheenRoughness: 0.55,
       sheenColor: new THREE.Color(0xffe6d4),
       side: THREE.DoubleSide,
@@ -437,7 +612,6 @@ export function SkinAction3D({ activeMode }: Props) {
     epiMesh.castShadow = true;
     root.add(epiMesh);
 
-    // Translucent Epidermis Cross-Section Wall (with scalloped Dermal Papillae bottom interface)
     const epiShape = new THREE.Shape();
     epiShape.moveTo(-halfW, 0.39);
     epiShape.lineTo(halfW, 0.39);
@@ -464,18 +638,15 @@ export function SkinAction3D({ activeMode }: Props) {
       opacity: 0.54,
       depthWrite: false,
     });
-    const epiBody = new THREE.Mesh(epiBodyGeo, epiBodyMat);
-    root.add(epiBody);
+    root.add(new THREE.Mesh(epiBodyGeo, epiBodyMat));
 
-    // Glistening anatomical Basement Membrane ribbon tracing the Dermal Papillae
     const bmPoints: THREE.Vector3[] = [];
     for (let s = 0; s <= papillaSteps; s++) {
       const x = -halfW + (s / papillaSteps) * W;
       bmPoints.push(new THREE.Vector3(x, papillaWave(x), halfD + 0.012));
     }
-    const bmCurve = new THREE.CatmullRomCurve3(bmPoints);
     const bmRibbon = new THREE.Mesh(
-      new THREE.TubeGeometry(bmCurve, 96, 0.019, 10, false),
+      new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bmPoints), 96, 0.019, 10, false),
       new THREE.MeshPhysicalMaterial({
         color: 0xc27058,
         emissive: new THREE.Color(0xa6503c),
@@ -487,7 +658,7 @@ export function SkinAction3D({ activeMode }: Props) {
     bmRibbon.castShadow = true;
     root.add(bmRibbon);
 
-    // Smooth Organic 3D Keratinocyte Cellular Strata (wet rounded cells with subtle per-cell hue variance)
+    // Smooth Organic 3D Keratinocyte Cellular Strata
     const kCount = 132;
     const kGeo = new THREE.SphereGeometry(0.05, 16, 12);
     const kMat = new THREE.MeshPhysicalMaterial({
@@ -529,7 +700,6 @@ export function SkinAction3D({ activeMode }: Props) {
       dummy.updateMatrix();
       keratinocytes.setMatrixAt(i, dummy.matrix);
 
-      // Subtle living biological color variance (basal deeper rose-peach -> upper luminous pearl-peach)
       const h = 0.052 + (cRand() - 0.5) * 0.014;
       const s = 0.46 - row * 0.06 + (cRand() - 0.5) * 0.06;
       const l = 0.72 + row * 0.05 + (cRand() - 0.5) * 0.05;
@@ -540,7 +710,6 @@ export function SkinAction3D({ activeMode }: Props) {
     if (keratinocytes.instanceColor) keratinocytes.instanceColor.needsUpdate = true;
     root.add(keratinocytes);
 
-    // Subtle Projected LED Surface Pool directly onto the textured skin beneath the wand
     const surfacePoolMat = new THREE.MeshBasicMaterial({
       map: glowTex,
       color: MODE_CONFIG[0].color,
@@ -556,7 +725,7 @@ export function SkinAction3D({ activeMode }: Props) {
     root.add(surfacePool);
 
     // =========================================================================
-    // LAYER 2: WET TRANSLUCENT DERME, COLLAGÈNE / ÉLASTINE, HYALURONIC GLOBULES & FIBROBLASTES
+    // LAYER 2: WET TRANSLUCENT DERME, COLLAGÈNE / ÉLASTINE & FIBROBLASTES
     // =========================================================================
     const dermisShape = new THREE.Shape();
     dermisShape.moveTo(-halfW, -0.66);
@@ -574,25 +743,26 @@ export function SkinAction3D({ activeMode }: Props) {
       curveSegments: 1,
     });
     dermisBodyGeo.translate(0, 0, -halfD);
-    const dermisBodyMat = new THREE.MeshPhysicalMaterial({
-      color: 0xd48674,
-      roughness: 0.14, // wet gelatinous interstitial matrix
-      ior: 1.38, // physical refractive index of human dermis
-      clearcoat: 0.85,
-      clearcoatRoughness: 0.12,
-      transparent: true,
-      opacity: 0.28,
-      depthWrite: false,
-    });
-    const dermisBody = new THREE.Mesh(dermisBodyGeo, dermisBodyMat);
-    root.add(dermisBody);
+    root.add(
+      new THREE.Mesh(
+        dermisBodyGeo,
+        new THREE.MeshPhysicalMaterial({
+          color: 0xd48674,
+          roughness: 0.14,
+          ior: 1.38,
+          clearcoat: 0.85,
+          clearcoatRoughness: 0.12,
+          transparent: true,
+          opacity: 0.28,
+          depthWrite: false,
+        })
+      )
+    );
 
-    // Internal Subsurface Scattering PointLight inside the dermis (physically lights tissues from within!)
     const subsurfaceLight = new THREE.PointLight(MODE_CONFIG[0].sssColor, 4.2, 4.2, 1.6);
     subsurfaceLight.position.set(0, -0.18, 0.75);
     root.add(subsurfaceLight);
 
-    // Soft 2D Feathered Subsurface Light Halo on the front cross-section (zero hard rectangle)
     const cutawayGlowMat = new THREE.MeshBasicMaterial({
       map: softPenTex,
       color: MODE_CONFIG[0].color,
@@ -609,7 +779,6 @@ export function SkinAction3D({ activeMode }: Props) {
     cutawayGlow.renderOrder = 9;
     root.add(cutawayGlow);
 
-    // Glistening Wet 3D Collagen & Elastin Lattice
     const collagenMat = new THREE.MeshPhysicalMaterial({
       color: 0xd67e6a,
       emissive: new THREE.Color(0xd61f42),
@@ -645,9 +814,11 @@ export function SkinAction3D({ activeMode }: Props) {
           fibroblastPositions.push(new THREE.Vector3(x, y - 0.28, zz));
         }
       }
-      const curve = new THREE.CatmullRomCurve3(pts);
       const radius = row % 2 === 0 ? 0.031 : 0.023;
-      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 72, radius, 12, false), collagenMat);
+      const tube = new THREE.Mesh(
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 72, radius, 12, false),
+        collagenMat
+      );
       tube.castShadow = true;
       tube.receiveShadow = true;
       collagenGroup.add(tube);
@@ -661,25 +832,27 @@ export function SkinAction3D({ activeMode }: Props) {
         new THREE.Vector3(x + 0.15, -0.08, 0.45),
         new THREE.Vector3(x + 0.28, 0.12, 1.0),
       ];
-      const curve = new THREE.CatmullRomCurve3(pts);
-      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 36, 0.016, 8, false), elastinMat);
+      const tube = new THREE.Mesh(
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 36, 0.016, 8, false),
+        elastinMat
+      );
       tube.castShadow = true;
       collagenGroup.add(tube);
     }
 
-    // Suspended Glistening Hyaluronic Hydration Micro-Globules inside the dermal gel
     const hydroCount = 58;
-    const hydroGeo = new THREE.SphereGeometry(0.034, 14, 12);
-    const hydroMat = new THREE.MeshPhysicalMaterial({
-      color: 0xfff4ec,
-      roughness: 0.06,
-      metalness: 0.0,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-      transparent: true,
-      opacity: 0.52,
-    });
-    const hydroGlobules = new THREE.InstancedMesh(hydroGeo, hydroMat, hydroCount);
+    const hydroGlobules = new THREE.InstancedMesh(
+      new THREE.SphereGeometry(0.034, 14, 12),
+      new THREE.MeshPhysicalMaterial({
+        color: 0xfff4ec,
+        roughness: 0.06,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.05,
+        transparent: true,
+        opacity: 0.52,
+      }),
+      hydroCount
+    );
     const hydroData: { x: number; y: number; z: number; s: number; p: number }[] = [];
     for (let i = 0; i < hydroCount; i++) {
       const hx = (cRand() - 0.5) * (W - 0.45);
@@ -695,8 +868,6 @@ export function SkinAction3D({ activeMode }: Props) {
     hydroGlobules.instanceMatrix.needsUpdate = true;
     root.add(hydroGlobules);
 
-    // Luminous Organic Fibroblast Cells (Bloom-enabled in Red 630nm mode!)
-    const fibroGeo = new THREE.SphereGeometry(0.048, 14, 12);
     const fibroMat = new THREE.MeshStandardMaterial({
       color: 0xffd2c7,
       emissive: new THREE.Color(0xff385c),
@@ -704,7 +875,11 @@ export function SkinAction3D({ activeMode }: Props) {
       roughness: 0.18,
       toneMapped: false,
     });
-    const fibroblasts = new THREE.InstancedMesh(fibroGeo, fibroMat, fibroblastPositions.length);
+    const fibroblasts = new THREE.InstancedMesh(
+      new THREE.SphereGeometry(0.048, 14, 12),
+      fibroMat,
+      fibroblastPositions.length
+    );
     fibroblastPositions.forEach((p, idx) => {
       dummy.position.copy(p);
       dummy.scale.set(1.3, 0.75, 0.92);
@@ -714,7 +889,6 @@ export function SkinAction3D({ activeMode }: Props) {
     fibroblasts.instanceMatrix.needsUpdate = true;
     root.add(fibroblasts);
 
-    // Lymphatic / Microcirculation Capillary Vessels (Green 520nm + Sonic)
     const vesselCurves: THREE.CatmullRomCurve3[] = [];
     const vesselMat = new THREE.MeshPhysicalMaterial({
       color: 0x9cd2bc,
@@ -741,12 +915,10 @@ export function SkinAction3D({ activeMode }: Props) {
       }
       const vc = new THREE.CatmullRomCurve3(vPts);
       vesselCurves.push(vc);
-      const vesselTube = new THREE.Mesh(new THREE.TubeGeometry(vc, 56, 0.028, 10, false), vesselMat);
-      root.add(vesselTube);
+      root.add(new THREE.Mesh(new THREE.TubeGeometry(vc, 56, 0.028, 10, false), vesselMat));
     }
 
     const flowCount = 52;
-    const flowGeo = new THREE.SphereGeometry(0.036, 12, 10);
     const flowMat = new THREE.MeshStandardMaterial({
       color: 0xd2ffe9,
       emissive: new THREE.Color(0x18c47e),
@@ -754,11 +926,15 @@ export function SkinAction3D({ activeMode }: Props) {
       roughness: 0.15,
       toneMapped: false,
     });
-    const flowDroplets = new THREE.InstancedMesh(flowGeo, flowMat, flowCount);
+    const flowDroplets = new THREE.InstancedMesh(
+      new THREE.SphereGeometry(0.036, 12, 10),
+      flowMat,
+      flowCount
+    );
     root.add(flowDroplets);
 
     // =========================================================================
-    // LAYER 3: WET STRIATED ANATOMICAL MUSCLES (Normal-Mapped) & BLOOM EMS PULSES
+    // LAYER 3: WET STRIATED ANATOMICAL MUSCLES & EMS PULSES
     // =========================================================================
     const muscleGroup = new THREE.Group();
     muscleGroup.position.y = -0.94;
@@ -772,18 +948,16 @@ export function SkinAction3D({ activeMode }: Props) {
       emissive: new THREE.Color(0xd96614),
       emissiveIntensity: 0.04,
       roughness: 0.34,
-      clearcoat: 0.68, // wet glistening myofibril fascia
+      clearcoat: 0.68,
       clearcoatRoughness: 0.2,
       sheen: 0.45,
       sheenColor: new THREE.Color(0xffcdb8),
     });
 
     const muscleBundles: THREE.Mesh[] = [];
-    const bundleRows = 2;
-    const bundleCols = 9;
-    for (let r = 0; r < bundleRows; r++) {
-      for (let c = 0; c < bundleCols; c++) {
-        const bz = -halfD + 0.18 + (c / (bundleCols - 1)) * (D - 0.36);
+    for (let r = 0; r < 2; r++) {
+      for (let c = 0; c < 9; c++) {
+        const bz = -halfD + 0.18 + (c / 8) * (D - 0.36);
         const by = r === 0 ? 0.11 : -0.11;
         const pts = [
           new THREE.Vector3(-halfW + 0.05, by, bz),
@@ -791,8 +965,10 @@ export function SkinAction3D({ activeMode }: Props) {
           new THREE.Vector3(halfW * 0.35, by - 0.025, bz - Math.sin(c) * 0.025),
           new THREE.Vector3(halfW - 0.05, by, bz),
         ];
-        const mCurve = new THREE.CatmullRomCurve3(pts);
-        const mMesh = new THREE.Mesh(new THREE.TubeGeometry(mCurve, 44, 0.135, 16, false), muscleMat);
+        const mMesh = new THREE.Mesh(
+          new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 44, 0.135, 16, false),
+          muscleMat
+        );
         mMesh.scale.y = 0.85;
         mMesh.castShadow = true;
         mMesh.receiveShadow = true;
@@ -801,7 +977,6 @@ export function SkinAction3D({ activeMode }: Props) {
       }
     }
 
-    // Subtle warm rose-champagne anatomical base plinth beneath muscle layer
     const basePlinth = new THREE.Mesh(
       new THREE.BoxGeometry(W + 0.04, 0.075, D + 0.04),
       new THREE.MeshPhysicalMaterial({
@@ -814,9 +989,7 @@ export function SkinAction3D({ activeMode }: Props) {
     basePlinth.receiveShadow = true;
     root.add(basePlinth);
 
-    // Volumetric Optical-Bloom EMS Micro-Current Pulses
     const emsPulseCount = 42;
-    const emsPulseGeo = new THREE.SphereGeometry(0.036, 12, 10);
     const emsPulseMat = new THREE.MeshStandardMaterial({
       color: 0xffe8a8,
       emissive: new THREE.Color(0xff9224),
@@ -826,97 +999,249 @@ export function SkinAction3D({ activeMode }: Props) {
       roughness: 0.12,
       toneMapped: false,
     });
-    const emsPulses = new THREE.InstancedMesh(emsPulseGeo, emsPulseMat, emsPulseCount);
+    const emsPulses = new THREE.InstancedMesh(
+      new THREE.SphereGeometry(0.036, 12, 10),
+      emsPulseMat,
+      emsPulseCount
+    );
     emsPulses.renderOrder = 10;
     root.add(emsPulses);
 
     // =========================================================================
-    // PHOTOREALISTIC LUMIASCULPT™ M8807 TREATMENT HEAD (Casting Real Soft Shadow!)
+    // EXACT LUMIASCULPT™ M8807 3D PRODUCT MODEL (IDENTICAL TO HEADER HERO 3D!)
     // =========================================================================
-    const wandHead = new THREE.Group();
-    wandHead.position.set(0, 0.92, 0);
-    root.add(wandHead);
+    // wandAnchor sits at the skin-contact point beneath the treatment head
+    const wandAnchor = new THREE.Group();
+    wandAnchor.position.set(0, 0.56, 0);
+    root.add(wandAnchor);
 
-    const chromeMat = new THREE.MeshPhysicalMaterial({
-      color: 0xf7f1ea,
-      metalness: 0.98,
-      roughness: 0.07,
-      clearcoat: 0.6,
+    // Tilt & orient the authentic M8807 wand so its chrome treatment head faces DOWN onto the skin
+    // while the FULL pearl-white handle, live black OLED display & 2 chrome buttons are visible in-frame!
+    const wandRig = new THREE.Group();
+    wandRig.scale.setScalar(0.64);
+    wandRig.rotation.order = "YXZ";
+    wandRig.rotation.x = Math.PI / 2 + 0.54; // ~121° so handle stays cleanly inside frame with zero top clipping
+    wandRig.rotation.y = 1.92; // 3/4 forward-left showcase showing OLED panel + 2 chrome buttons + chrome head!
+    wandAnchor.add(wandRig);
+
+    // Offset so the treatment head contact face (0, 1.0, 0.831) sits right at wandRig origin (0, 0, 0)
+    const deviceModel = new THREE.Group();
+    deviceModel.position.set(0, -1.0, -0.831);
+    wandRig.add(deviceModel);
+
+    // Exact Hero Materials
+    const whiteMat = new THREE.MeshPhysicalMaterial({
+      color: 0xf4ece2,
+      roughness: 0.22,
+      metalness: 0.02,
+      clearcoat: 0.9,
+      clearcoatRoughness: 0.08,
+      sheen: 0.4,
+      sheenColor: new THREE.Color(0xffe0be),
     });
-    const ceramicMat = new THREE.MeshPhysicalMaterial({
-      color: 0xfbf7f2,
-      roughness: 0.14,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.06,
+    const chromeMat = new THREE.MeshPhysicalMaterial({
+      color: 0xf2eae0,
+      metalness: 0.96,
+      roughness: 0.09,
+      clearcoat: 0.5,
+    });
+    const satinMat = new THREE.MeshStandardMaterial({
+      color: 0xd6cbc0,
+      metalness: 0.85,
+      roughness: 0.26,
+    });
+    const cottonRingMat = new THREE.MeshPhysicalMaterial({
+      color: 0xf8f1e7,
+      roughness: 0.16,
+      transmission: 0.48,
+      thickness: 0.12,
+      transparent: true,
+      opacity: 0.88,
+      clearcoat: 1,
+    });
+    const electrodeMat = new THREE.MeshPhysicalMaterial({
+      map: electrodeTex,
+      color: 0xf1eae1,
+      metalness: 0.45,
+      roughness: 0.22,
+      clearcoat: 0.6,
+      emissive: new THREE.Color(0xff7a1a),
+      emissiveIntensity: 0,
+      side: THREE.DoubleSide,
     });
     const ledMat = new THREE.MeshStandardMaterial({
       color: MODE_CONFIG[0].color,
       emissive: new THREE.Color(MODE_CONFIG[0].color),
       emissiveIntensity: 2.2,
+      roughness: 0.28,
       toneMapped: false,
     });
+    const ledDotMat = new THREE.MeshBasicMaterial({ color: 0xfff8f0, toneMapped: false });
 
-    const handleCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 0.18, 0),
-      new THREE.Vector3(-0.08, 0.56, -0.04),
-      new THREE.Vector3(-0.34, 0.96, -0.1),
-      new THREE.Vector3(-0.62, 1.24, -0.14),
-    ]);
-    const handleBody = new THREE.Mesh(
-      new THREE.TubeGeometry(handleCurve, 32, 0.21, 28, false),
-      ceramicMat
+    // 1. Sculpted oval pearl-white body
+    const bodyGroup = new THREE.Group();
+    bodyGroup.scale.z = Z_SCALE;
+    deviceModel.add(bodyGroup);
+
+    const handleMesh = new THREE.Mesh(
+      new THREE.LatheGeometry(buildHandleProfile(H_BOTTOM, H_TOP, 0, 140), 96),
+      whiteMat
     );
-    handleBody.castShadow = true;
-    wandHead.add(handleBody);
+    handleMesh.castShadow = true;
+    bodyGroup.add(handleMesh);
 
-    const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 0.22, 56), chromeMat);
-    collar.position.y = 0.18;
-    collar.castShadow = true;
-    wandHead.add(collar);
+    // 2. Curved black gloss OLED status panel (live-updated to active mode!)
+    const panelCanvas = document.createElement("canvas");
+    panelCanvas.width = 512;
+    panelCanvas.height = 1536;
+    const panelCtx = panelCanvas.getContext("2d")!;
+    drawDevicePanel(panelCtx, MODE_CONFIG[0].panelKey, MODE_CONFIG[0].css);
+    const panelTex = new THREE.CanvasTexture(panelCanvas);
+    panelTex.colorSpace = THREE.SRGBColorSpace;
+    panelTex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    const panelMesh = new THREE.Mesh(
+      new THREE.LatheGeometry(
+        buildHandleProfile(PANEL_Y0, PANEL_Y1, 0.004, 100),
+        72,
+        -PANEL_PHI / 2,
+        PANEL_PHI
+      ),
+      new THREE.MeshPhysicalMaterial({
+        map: panelTex,
+        transparent: true,
+        roughness: 0.05,
+        metalness: 0.12,
+        clearcoat: 1,
+        clearcoatRoughness: 0.03,
+      })
+    );
+    bodyGroup.add(panelMesh);
 
-    const headBase = new THREE.Mesh(new THREE.CylinderGeometry(0.54, 0.44, 0.16, 72), chromeMat);
-    headBase.scale.set(1.12, 1, 0.92);
-    headBase.position.y = 0;
-    headBase.castShadow = true;
-    wandHead.add(headBase);
+    // 3. Chrome side accent strips & USB-C rim
+    const stripRight = new THREE.Mesh(
+      new THREE.LatheGeometry(buildHandleProfile(-1.35, 0.85, 0.004, 80), 8, 1.38, 0.11),
+      chromeMat
+    );
+    const stripLeft = new THREE.Mesh(
+      new THREE.LatheGeometry(buildHandleProfile(-1.35, 0.85, 0.004, 80), 8, -1.49, 0.11),
+      chromeMat
+    );
+    bodyGroup.add(stripRight, stripLeft);
 
-    const ledRing = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.042, 24, 72), ledMat);
-    ledRing.rotation.x = Math.PI / 2;
-    ledRing.scale.set(1.1, 0.92, 1);
-    ledRing.position.y = -0.072;
-    wandHead.add(ledRing);
+    const usbRim = new THREE.Mesh(new THREE.RingGeometry(0.05, 0.085, 24), chromeMat);
+    usbRim.rotation.x = Math.PI / 2;
+    usbRim.position.set(0, H_BOTTOM + 0.01, 0);
+    deviceModel.add(usbRim);
 
-    const electrodeMat = new THREE.MeshStandardMaterial({
-      color: 0xf4eee6,
-      metalness: 0.78,
-      roughness: 0.16,
-      emissive: new THREE.Color(0xff841a),
-      emissiveIntensity: 0,
+    // 4. Two metallic chrome buttons (vibration & power)
+    const btnGeo = new THREE.CylinderGeometry(0.102, 0.108, 0.052, 48);
+    const btnFaceGeo = new THREE.CircleGeometry(0.09, 48);
+    (
+      [
+        [-0.62, vibIconTex],
+        [-0.95, pwrIconTex],
+      ] as const
+    ).forEach(([y, tex]) => {
+      const zFront = handleRadius(y) * Z_SCALE;
+      const btn = new THREE.Group();
+      btn.position.set(0, y, zFront + 0.005);
+      const ring = new THREE.Mesh(btnGeo, chromeMat);
+      ring.rotation.x = Math.PI / 2;
+      btn.add(ring);
+      const face = new THREE.Mesh(
+        btnFaceGeo,
+        new THREE.MeshStandardMaterial({
+          map: tex,
+          metalness: 0.72,
+          roughness: 0.24,
+          color: 0xffffff,
+        })
+      );
+      face.position.z = 0.027;
+      btn.add(face);
+      deviceModel.add(btn);
     });
-    const electrode = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.31, 0.31, 0.036, 64),
+
+    // 5. Iconic Flared Chrome Treatment Head + 8 LEDs + Brushed Thermal Electrode + Magnetic Ring
+    const heroHead = new THREE.Group();
+    heroHead.position.set(0, 1.0, 0);
+    deviceModel.add(heroHead);
+
+    const headProfile = [
+      [0.0, 0.18],
+      [0.26, 0.18],
+      [0.27, 0.22],
+      [0.27, 0.5],
+      [0.31, 0.55],
+      [0.46, 0.64],
+      [0.6, 0.7],
+      [0.645, 0.735],
+      [0.655, 0.775],
+      [0.64, 0.805],
+      [0.575, 0.815],
+      [0.555, 0.812],
+    ].map(([r, z]) => new THREE.Vector2(r, z));
+    const headGeo = new THREE.LatheGeometry(headProfile, 110);
+    headGeo.rotateX(Math.PI / 2);
+    const headMesh = new THREE.Mesh(headGeo, chromeMat);
+    headMesh.castShadow = true;
+    heroHead.add(headMesh);
+
+    const backCap = new THREE.Mesh(new THREE.CircleGeometry(0.56, 72), chromeMat);
+    backCap.position.z = 0.79;
+    heroHead.add(backCap);
+
+    const stepRing = new THREE.Mesh(new THREE.RingGeometry(0.53, 0.556, 96), satinMat);
+    stepRing.position.z = 0.811;
+    heroHead.add(stepRing);
+
+    const ledBand = new THREE.Mesh(new THREE.RingGeometry(0.37, 0.53, 96), ledMat);
+    ledBand.position.z = 0.806;
+    heroHead.add(ledBand);
+
+    const dotGeo = new THREE.CircleGeometry(0.018, 12);
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+      const d = new THREE.Mesh(dotGeo, ledDotMat);
+      d.position.set(Math.cos(a) * 0.45, Math.sin(a) * 0.45, 0.808);
+      heroHead.add(d);
+    }
+
+    const centerCyl = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.368, 0.368, 0.045, 72),
       electrodeMat
     );
-    electrode.scale.set(1.1, 1, 0.92);
-    electrode.position.y = -0.082;
-    wandHead.add(electrode);
+    centerCyl.rotation.x = Math.PI / 2;
+    centerCyl.position.z = 0.808;
+    heroHead.add(centerCyl);
 
-    // Dual-Layer Penetrating Light Cone
+    const innerBezel = new THREE.Mesh(new THREE.RingGeometry(0.355, 0.376, 96), chromeMat);
+    innerBezel.position.z = 0.831;
+    heroHead.add(innerBezel);
+
+    const cottonClip = new THREE.Mesh(
+      new THREE.TorusGeometry(0.605, 0.032, 24, 96),
+      cottonRingMat
+    );
+    cottonClip.position.z = 0.815;
+    heroHead.add(cottonClip);
+
+    // Dual-Layer Volumetric Penetrating Light Cone descending straight from the contact face
     const outerBeamMat = new THREE.MeshBasicMaterial({
       map: beamTex,
       color: MODE_CONFIG[0].color,
       transparent: true,
-      opacity: 0.48,
+      opacity: 0.46,
       blending: THREE.NormalBlending,
       depthWrite: false,
       side: THREE.DoubleSide,
     });
-    const outerBeamGeo = new THREE.CylinderGeometry(0.42, 1.06, 1.5, 48, 1, true);
+    const outerBeamGeo = new THREE.CylinderGeometry(0.38, 1.04, 1.5, 48, 1, true);
     outerBeamGeo.translate(0, -0.75, 0);
     const outerBeam = new THREE.Mesh(outerBeamGeo, outerBeamMat);
-    outerBeam.position.y = -0.08;
+    outerBeam.position.y = -0.02;
     outerBeam.renderOrder = 7;
-    wandHead.add(outerBeam);
+    wandAnchor.add(outerBeam);
 
     const innerBeamMat = new THREE.MeshBasicMaterial({
       map: beamTex,
@@ -927,16 +1252,16 @@ export function SkinAction3D({ activeMode }: Props) {
       depthWrite: false,
       side: THREE.DoubleSide,
     });
-    const innerBeamGeo = new THREE.CylinderGeometry(0.24, 0.56, 1.5, 36, 1, true);
+    const innerBeamGeo = new THREE.CylinderGeometry(0.22, 0.54, 1.5, 36, 1, true);
     innerBeamGeo.translate(0, -0.75, 0);
     const innerBeam = new THREE.Mesh(innerBeamGeo, innerBeamMat);
-    innerBeam.position.y = -0.08;
+    innerBeam.position.y = -0.02;
     innerBeam.renderOrder = 8;
-    wandHead.add(innerBeam);
+    wandAnchor.add(innerBeam);
 
     const headLight = new THREE.PointLight(MODE_CONFIG[0].color, 5.2, 5.2, 1.6);
-    headLight.position.set(0, -0.22, 0.12);
-    wandHead.add(headLight);
+    headLight.position.set(0, -0.14, 0.14);
+    wandAnchor.add(headLight);
 
     // Expanding surface sonic / EMS rings on the epidermis
     const ringGeo = new THREE.RingGeometry(0.32, 0.37, 64);
@@ -1061,6 +1386,7 @@ export function SkinAction3D({ activeMode }: Props) {
     const tempPt = new THREE.Vector3();
     let elapsed = 0;
     let currentDepth = 1.0;
+    let lastDrawnMode: SynergyModeId = 0;
     let raf = 0;
 
     const loop = () => {
@@ -1073,6 +1399,13 @@ export function SkinAction3D({ activeMode }: Props) {
       const mode = modeRef.current;
       const cfg = MODE_CONFIG[mode];
 
+      // Update live OLED screen on the 3D LumiaSculpt™ handle whenever activeMode changes!
+      if (mode !== lastDrawnMode) {
+        lastDrawnMode = mode;
+        drawDevicePanel(panelCtx, cfg.panelKey, cfg.css);
+        panelTex.needsUpdate = true;
+      }
+
       tgtColor.setHex(cfg.color);
       tgtGlow.setHex(cfg.glowColor);
       tgtSss.setHex(cfg.sssColor);
@@ -1083,7 +1416,6 @@ export function SkinAction3D({ activeMode }: Props) {
 
       const pulse = 0.86 + 0.14 * Math.sin(t * 4.8);
 
-      // Update Optical LED, Beam & Subsurface Scattering Colors
       ledMat.color.copy(curColor);
       ledMat.emissive.copy(curColor);
       outerBeamMat.color.copy(curColor);
@@ -1094,18 +1426,16 @@ export function SkinAction3D({ activeMode }: Props) {
       subsurfaceLight.color.copy(curSss);
       pMat.color.copy(curColor);
 
-      // Graceful figure-8 glide of the M8807 treatment head across the epidermis
-      const glideX = Math.sin(t * 0.72) * 1.25;
-      const glideZ = Math.sin(t * 1.44) * 0.24;
-      const sonicJitter = mode === 1 ? Math.sin(t * 72) * 0.01 : 0;
+      // Smooth figure-8 massage glide of the authentic LumiaSculpt™ M8807 wand
+      const glideX = Math.sin(t * 0.72) * 1.15;
+      const glideZ = Math.sin(t * 1.44) * 0.22;
+      const sonicJitter = mode === 1 ? Math.sin(t * 72) * 0.009 : 0;
 
-      wandHead.position.x = glideX + sonicJitter;
-      wandHead.position.z = glideZ;
-      wandHead.position.y = 0.7 + Math.sin(t * 1.44) * 0.022;
-      wandHead.rotation.z = -Math.cos(t * 0.72) * 0.1;
-      wandHead.rotation.x = Math.cos(t * 1.44) * 0.04;
+      wandAnchor.position.x = glideX + sonicJitter;
+      wandAnchor.position.z = glideZ;
+      wandAnchor.position.y = 0.57 + Math.sin(t * 1.44) * 0.02;
+      wandRig.rotation.z = -Math.cos(t * 0.72) * 0.07;
 
-      // Move internal Subsurface Scattering light directly beneath the wand inside the dermis!
       subsurfaceLight.position.set(
         glideX,
         mode === 2 ? 0.18 : mode === 3 ? -0.52 : -0.2,
@@ -1131,7 +1461,7 @@ export function SkinAction3D({ activeMode }: Props) {
       cutawayGlow.scale.set(radScale * 1.02, currentDepth * 0.94, 1);
       cutawayGlowMat.opacity = (mode === 2 ? 0.42 : 0.54) * pulse;
 
-      // 1. REAL-TIME EPIDERMIS SMOOTHING & LIFT WAVE (on real photographic skin surface!)
+      // 1. REAL-TIME EPIDERMIS SMOOTHING & LIFT WAVE
       const posAttr = epiGeo.attributes.position;
       for (let i = 0; i < posAttr.count; i++) {
         const vx = posAttr.getX(i);
@@ -1157,7 +1487,7 @@ export function SkinAction3D({ activeMode }: Props) {
       posAttr.needsUpdate = true;
       epiGeo.computeVertexNormals();
 
-      // Animate Organic Keratinocyte Cells
+      // Keratinocytes
       const kEmissiveTarget = mode === 2 ? 0.75 * pulse : 0.06;
       kMat.emissive.copy(curColor);
       kMat.emissiveIntensity += (kEmissiveTarget - kMat.emissiveIntensity) * Math.min(1, dt * 4);
@@ -1174,7 +1504,7 @@ export function SkinAction3D({ activeMode }: Props) {
       }
       keratinocytes.instanceMatrix.needsUpdate = true;
 
-      // Gently drift suspended hyaluronic hydration micro-globules inside the dermis
+      // Hyaluronic micro-globules
       for (let i = 0; i < hydroCount; i++) {
         const hd = hydroData[i];
         dummy.position.set(
@@ -1189,7 +1519,7 @@ export function SkinAction3D({ activeMode }: Props) {
       }
       hydroGlobules.instanceMatrix.needsUpdate = true;
 
-      // 2. DERMIS: COLLAGEN SYNTHESIS + BLOOM FIBROBLASTS (Red 630nm)
+      // 2. DERMIS: COLLAGEN + FIBROBLASTS
       const colTarget = mode === 0 ? 1.15 * pulse : 0.1;
       collagenMat.emissive.copy(curColor);
       collagenMat.emissiveIntensity +=
@@ -1214,7 +1544,7 @@ export function SkinAction3D({ activeMode }: Props) {
       }
       fibroblasts.instanceMatrix.needsUpdate = true;
 
-      // 3. LYMPHATIC / MICROCIRCULATION DRAINAGE FLOW (Green 520nm + Sonic)
+      // 3. LYMPHATIC DRAINAGE FLOW
       const vesselEmissive = mode === 1 ? 0.8 * pulse : 0.05;
       vesselMat.emissiveIntensity +=
         (vesselEmissive - vesselMat.emissiveIntensity) * Math.min(1, dt * 4);
@@ -1235,7 +1565,7 @@ export function SkinAction3D({ activeMode }: Props) {
       }
       flowDroplets.instanceMatrix.needsUpdate = true;
 
-      // 4. DEEP WET STRIATED MUSCLES & BLOOM EMS 45°C MICRO-CURRENT PULSES
+      // 4. DEEP MUSCLES & EMS PULSES
       const emsWave = Math.sin(t * 4.4);
       const muscTarget = mode === 3 ? 0.65 * (0.55 + 0.45 * emsWave) : 0.03;
       muscleMat.emissiveIntensity +=
@@ -1258,7 +1588,7 @@ export function SkinAction3D({ activeMode }: Props) {
           const ch = i % channels;
           const idxInCh = Math.floor(i / channels);
           const f = (t * 1.15 + idxInCh / perChannel) % 1;
-          const topY = wandHead.position.y - 0.12;
+          const topY = wandAnchor.position.y - 0.06;
           const botY = -0.94;
           const rad = 0.22 + 0.62 * f;
           const theta = (ch / channels) * Math.PI * 2 + t * 1.2 + f * 1.1;
@@ -1277,7 +1607,6 @@ export function SkinAction3D({ activeMode }: Props) {
         emsPulses.instanceMatrix.needsUpdate = true;
       }
 
-      // Expanding surface pulse rings on the epidermis
       pulseRings.forEach((ring, i) => {
         const p = (t * (mode === 1 ? 0.95 : 0.68) + i / pulseRings.length) % 1;
         ring.position.x = glideX;
@@ -1289,7 +1618,6 @@ export function SkinAction3D({ activeMode }: Props) {
         rm.opacity = (1 - p) * ringAlpha;
       });
 
-      // Biophotonic ambient micro-particles
       const pAttr = pGeo.attributes.position;
       for (let i = 0; i < pCount; i++) {
         let px = pAttr.getX(i);
@@ -1311,11 +1639,10 @@ export function SkinAction3D({ activeMode }: Props) {
       }
       pAttr.needsUpdate = true;
 
-      // Smooth showcase sway + user drag-to-orbit damping
       userYaw += (targetYaw - userYaw) * Math.min(1, dt * 7);
       userPitch += (targetPitch - userPitch) * Math.min(1, dt * 7);
-      root.rotation.y = -0.22 + Math.sin(t * 0.32) * 0.055 + userYaw;
-      root.rotation.x = 0.05 + userPitch;
+      root.rotation.y = -0.2 + Math.sin(t * 0.32) * 0.055 + userYaw;
+      root.rotation.x = 0.04 + userPitch;
 
       composer.render();
     };
@@ -1351,6 +1678,10 @@ export function SkinAction3D({ activeMode }: Props) {
       glowTex.dispose();
       shadowTex.dispose();
       particleTex.dispose();
+      electrodeTex.dispose();
+      vibIconTex.dispose();
+      pwrIconTex.dispose();
+      panelTex.dispose();
       spaEnvSource?.dispose();
       envTex.dispose();
       pmrem.dispose();
@@ -1368,9 +1699,9 @@ export function SkinAction3D({ activeMode }: Props) {
       className="relative overflow-hidden rounded-3xl border border-[#DFCBB9] bg-[#F2E3D5] shadow-md [content-visibility:auto] [contain-intrinsic-size:auto_none_auto_475px]"
     >
       {/* Top status bar */}
-      <div className="pointer-events-none absolute top-3.5 left-3.5 right-3.5 z-10 flex flex-wrap items-center justify-between gap-2">
+      <div className="pointer-events-none absolute top-3 left-3 right-3 sm:top-3.5 sm:left-3.5 sm:right-3.5 z-10 flex flex-wrap items-center justify-between gap-1.5">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3 py-1 text-[11px] font-semibold text-[#1E1916] shadow-2xs backdrop-blur-md">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/90 px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] font-semibold text-[#1E1916] shadow-2xs backdrop-blur-md">
             <span
               className="h-2 w-2 rounded-full animate-pulse"
               style={{ backgroundColor: cfg.css }}
@@ -1381,12 +1712,12 @@ export function SkinAction3D({ activeMode }: Props) {
             <span>↻</span> Pivoter 3D
           </span>
         </div>
-        <span className="rounded-full bg-[#1E1916]/85 px-3 py-1 text-[11px] font-medium text-[#FAF5EF] shadow-2xs backdrop-blur-md">
+        <span className="rounded-full bg-[#1E1916]/85 px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] font-medium text-[#FAF5EF] shadow-2xs backdrop-blur-md">
           {cfg.depthLabel}
         </span>
       </div>
 
-      {/* Right-side live anatomical depth rail (desktop) */}
+      {/* Right-side live anatomical depth rail (tablet/desktop) */}
       <div className="pointer-events-none hidden sm:flex absolute right-3.5 top-1/2 -translate-y-1/2 z-10 flex-col gap-2">
         {DEPTH_LAYERS.map((layer, idx) => {
           const isTargeted = cfg.activeLayerIndex === idx;
@@ -1417,15 +1748,15 @@ export function SkinAction3D({ activeMode }: Props) {
         })}
       </div>
 
-      {/* 3D Interactive Canvas */}
+      {/* 3D Interactive Canvas — compact on mobile so sticky preview + 4 cards below fit together! */}
       <div
         ref={mountRef}
-        className="relative h-[375px] sm:h-[470px] w-full cursor-grab active:cursor-grabbing touch-none"
+        className="relative h-[240px] sm:h-[320px] lg:h-[470px] w-full cursor-grab active:cursor-grabbing touch-none"
         title="Glissez pour faire pivoter la coupe 3D"
       />
 
-      {/* Bottom Biological Legend + Active Mode Action Summary */}
-      <div className="pointer-events-none absolute bottom-3 left-3.5 right-3.5 z-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 rounded-2xl border border-[#E3D1C0] bg-white/92 px-4 py-2 text-[11px] font-medium text-[#5C524B] shadow-2xs backdrop-blur-md">
+      {/* Desktop Bottom Biological Legend */}
+      <div className="pointer-events-none hidden lg:flex absolute bottom-3 left-3.5 right-3.5 z-10 flex-wrap items-center justify-between gap-x-4 gap-y-1.5 rounded-2xl border border-[#E3D1C0] bg-white/92 px-4 py-2 text-[11px] font-medium text-[#5C524B] shadow-2xs backdrop-blur-md">
         <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1">
           {DEPTH_LAYERS.map((layer, idx) => {
             const active = cfg.activeLayerIndex === idx;
@@ -1453,6 +1784,35 @@ export function SkinAction3D({ activeMode }: Props) {
           {cfg.effectSummary}
         </span>
       </div>
+
+      {/* Mobile / Tablet Direct 4-Mode Quick Switcher attached right under the 3D scene */}
+      {onSelectMode && (
+        <div className="lg:hidden border-t border-[#E3D1C0] bg-white/95 px-2.5 py-2 backdrop-blur-md">
+          <div className="grid grid-cols-4 gap-1.5">
+            {MODE_CONFIG.map((m) => {
+              const selected = activeMode === m.id;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => onSelectMode(m.id)}
+                  className={`flex items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[10px] sm:text-[11px] font-semibold transition ${
+                    selected
+                      ? "bg-[#1E1916] text-[#FAF5EF] shadow-xs"
+                      : "bg-[#F6EDE4] text-[#5C524B] hover:bg-[#EFE2D5]"
+                  }`}
+                >
+                  <span
+                    className="h-2 w-2 rounded-full shrink-0"
+                    style={{ backgroundColor: m.css }}
+                  />
+                  <span className="truncate">{m.shortLabel}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

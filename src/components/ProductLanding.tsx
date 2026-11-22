@@ -836,7 +836,7 @@ export function ProductLanding({ initialStock }: Props) {
         {/* 6. 4 Synergies Institut — Interactive 3D Skin-Layer Simulation + Compact Icon Cards */}
         <section
           id="technologie"
-          className="relative overflow-hidden border-y border-[#E8DDD2] bg-[#FAF5EF]/75 py-16 sm:py-24 text-[#1E1916]"
+          className="relative overflow-x-clip border-y border-[#E8DDD2] bg-[#FAF5EF]/75 py-16 sm:py-24 text-[#1E1916]"
         >
           {/* Soft blended right facial portrait melting into the section */}
           <div
@@ -866,10 +866,10 @@ export function ProductLanding({ initialStock }: Props) {
               </p>
             </div>
 
-            <div className="mt-12 grid gap-8 lg:grid-cols-12 lg:items-center">
-              {/* Interactive 3D Biological Skin Cutaway */}
-              <div className="lg:col-span-7">
-                <SkinAction3D activeMode={activeSynergy} />
+            <div className="mt-10 sm:mt-12 grid gap-6 lg:gap-8 lg:grid-cols-12 lg:items-center">
+              {/* Interactive 3D Biological Skin Cutaway — stays sticky on mobile while switching cards */}
+              <div className="sticky top-[62px] z-20 lg:static lg:col-span-7">
+                <SkinAction3D activeMode={activeSynergy} onSelectMode={setActiveSynergy} />
               </div>
 
               {/* 4 Compact Clickable Synergy Cards with Small Minimalist Icons */}

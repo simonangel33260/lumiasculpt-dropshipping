@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ProductHero3D } from "./ProductHero3D";
+import { ProductHeroVideo } from "./ProductHeroVideo";
 import { SkinAction3D, type SynergyModeId } from "./SkinAction3D";
 import { useState } from "react";
 import {
@@ -234,7 +234,7 @@ export function ProductLanding({ initialStock }: Props) {
     initialStock.variants[0]?.variantId ?? ""
   );
   const [showLifestyleInHero, setShowLifestyleInHero] = useState(false);
-  const [ritualVideo, setRitualVideo] = useState<"soiree" | "demo">("soiree");
+  const [ritualVideo, setRitualVideo] = useState<"soiree" | "demo">("demo");
   const [activeSynergy, setActiveSynergy] = useState<SynergyModeId>(0);
   const [sliderPos, setSliderPos] = useState(52);
   const [selectedPackQty, setSelectedPackQty] = useState<PackOption["quantity"]>(1);
@@ -362,7 +362,7 @@ export function ProductLanding({ initialStock }: Props) {
       <div className="relative z-10">
       {/* 1. Top Announcement Bar */}
       <div className="bg-gradient-to-r from-[#24171A] via-[#3A1E26] to-[#24171A] px-4 py-2 text-center text-[11px] sm:text-xs font-medium tracking-wide text-[#FFF6F2]">
-        ✦ OFFRE LANCEMENT : Jusqu&apos;à <span className="font-bold text-[#FFD59E]">-59 %</span> sur les Coffrets + Livraison Suivie Offerte • 60
+        ✦ OFFRE LANCEMENT : Jusqu&apos;à <span className="font-bold text-[#FFD59E]">-48 %</span> sur les Coffrets Cadeaux + Livraison Suivie Offerte • 60
         Jours d&apos;Essai
       </div>
 
@@ -417,7 +417,7 @@ export function ProductLanding({ initialStock }: Props) {
       </header>
 
       <main>
-        <ProductHero3D />
+        <ProductHeroVideo />
 
         {/* 3. Hero Split Showcase & Conversion Buy Box */}
         <section

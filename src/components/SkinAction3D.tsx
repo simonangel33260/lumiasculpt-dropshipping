@@ -77,18 +77,27 @@ const MODE_CONFIG = [
 const DEPTH_LAYERS = [
   {
     name: "Épiderme",
+    shortName: "Épiderme",
     depth: "0,2 mm",
+    detail: "Pores & kératinocytes",
     swatch: "#E4B292",
+    y3d: 0.28,
   },
   {
     name: "Derme & Collagène",
+    shortName: "Derme",
     depth: "1,5 mm",
+    detail: "Collagène, élastine & flux",
     swatch: "#D88F7B",
+    y3d: -0.26,
   },
   {
     name: "Muscles Faciaux",
+    shortName: "Muscles",
     depth: "3,5 mm",
+    detail: "Fibres tonifiées par EMS",
     swatch: "#A85247",
+    y3d: -0.94,
   },
 ] as const;
 
@@ -391,6 +400,14 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     zoomOut: () => void;
     reset: () => void;
   } | null>(null);
+  // Direct DOM refs for 60 FPS 3D-to-2D projected callout annotations (zero React re-renders)
+  const pinLineRefs = useRef<(SVGLineElement | null)[]>([]);
+  const pinDotRefs = useRef<(SVGCircleElement | null)[]>([]);
+  const pinRingRefs = useRef<(SVGCircleElement | null)[]>([]);
+  const pinLabelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const wandLineRef = useRef<SVGLineElement | null>(null);
+  const wandDotRef = useRef<SVGCircleElement | null>(null);
+  const wandLabelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     modeRef.current = activeMode;
@@ -1470,6 +1487,8 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     const tgtGlow = new THREE.Color();
     const tgtSss = new THREE.Color();
     const tempPt = new THREE.Vector3();
+    const projA = new THREE.Vector3();
+    const projB = new THREE.Vector3();
     let elapsed = 0;
     let currentDepth = 1.0;
     let lastDrawnMode: SynergyModeId = 0;
@@ -1757,8 +1776,100 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
         focusZ + Math.cos(orbitTheta) * currentRadius
       );
       camera.lookAt(focusX, focusY, focusZ);
+      camera.updateMatrixWorld();
 
       renderer.render(scene, camera);
+
+      // Update 60 FPS 3D-projected spatial callout pins & leader lines (zero React re-renders)
+      const cw = mount.clientWidth;
+      const ch = mount.clientHeight;
+      if (cw > 0 && ch > 0) {
+        const isCompact = cw < 460;
+        const rightX = Math.cos(orbitTheta);
+        const rightZ = -Math.sin(orbitTheta);
+        const tx = Math.abs(rightX) > 1e-4 ? halfW / Math.abs(rightX) : 99;
+        const tz = Math.abs(rightZ) > 1e-4 ? halfD / Math.abs(rightZ) : 99;
+        const edgeDist = Math.min(tx, tz) * 0.96;
+
+        const labelWidth = isCompact ? 112 : 164;
+        const minGap = isCompact ? 34 : 48;
+        const rawYs: number[] = [];
+        const anchors: { x0: number; y0: number; x1: number; y1: number }[] = [];
+
+        DEPTH_LAYERS.forEach((layer, i) => {
+          projA.set(rightX * edgeDist, layer.y3d, rightZ * edgeDist).project(camera);
+          const x0 = (projA.x * 0.5 + 0.5) * cw;
+          const y0 = (-projA.y * 0.5 + 0.5) * ch;
+
+          // Push endpoint cleanly to the right of the 3D cutaway silhouette
+          const x1 = Math.min(cw - labelWidth - 6, Math.max(x0 + (isCompact ? 20 : 38), cw - labelWidth - (isCompact ? 8 : 16)));
+          const y1 = Math.max(24, Math.min(ch - 26, y0 + (i - 1) * (isCompact ? 4 : 8)));
+          anchors.push({ x0, y0, x1, y1 });
+          rawYs.push(y1);
+        });
+
+        // Prevent vertical overlap between the 3 biological layer labels at any pitch/zoom
+        for (let i = 1; i < rawYs.length; i++) {
+          if (rawYs[i] < rawYs[i - 1] + minGap) {
+            rawYs[i] = rawYs[i - 1] + minGap;
+          }
+        }
+        const overflow = rawYs[rawYs.length - 1] - (ch - 22);
+        if (overflow > 0) {
+          for (let i = 0; i < rawYs.length; i++) rawYs[i] -= overflow;
+        }
+
+        DEPTH_LAYERS.forEach((_, i) => {
+          const { x0, y0, x1 } = anchors[i];
+          const y1 = Math.max(18, Math.min(ch - 20, rawYs[i]));
+          const clampedX0 = Math.max(8, Math.min(cw - 8, x0));
+          const clampedY0 = Math.max(8, Math.min(ch - 8, y0));
+
+          const line = pinLineRefs.current[i];
+          const dot = pinDotRefs.current[i];
+          const ring = pinRingRefs.current[i];
+          const lbl = pinLabelRefs.current[i];
+
+          if (line) {
+            line.setAttribute("x1", clampedX0.toFixed(1));
+            line.setAttribute("y1", clampedY0.toFixed(1));
+            line.setAttribute("x2", x1.toFixed(1));
+            line.setAttribute("y2", y1.toFixed(1));
+          }
+          if (dot) {
+            dot.setAttribute("cx", clampedX0.toFixed(1));
+            dot.setAttribute("cy", clampedY0.toFixed(1));
+          }
+          if (ring) {
+            ring.setAttribute("cx", clampedX0.toFixed(1));
+            ring.setAttribute("cy", clampedY0.toFixed(1));
+          }
+          if (lbl) {
+            lbl.style.transform = `translate3d(${(x1 + 6).toFixed(1)}px, ${y1.toFixed(1)}px, 0) translateY(-50%)`;
+          }
+        });
+
+        // 4th 3D Callout pinned dynamically to the gliding LumiaSculpt™ chrome head (upper-left)
+        projB.set(glideX, skinSurfaceY + 0.24, glideZ).project(camera);
+        const wx0 = Math.max(12, Math.min(cw - 12, (projB.x * 0.5 + 0.5) * cw));
+        const wy0 = Math.max(14, Math.min(ch - 14, (-projB.y * 0.5 + 0.5) * ch));
+        const wx1 = Math.max(isCompact ? 96 : 138, Math.min(wx0 - (isCompact ? 22 : 42), cw * 0.44));
+        const wy1 = Math.max(22, Math.min(ch * 0.42, wy0 - (isCompact ? 18 : 28)));
+
+        if (wandLineRef.current) {
+          wandLineRef.current.setAttribute("x1", wx0.toFixed(1));
+          wandLineRef.current.setAttribute("y1", wy0.toFixed(1));
+          wandLineRef.current.setAttribute("x2", wx1.toFixed(1));
+          wandLineRef.current.setAttribute("y2", wy1.toFixed(1));
+        }
+        if (wandDotRef.current) {
+          wandDotRef.current.setAttribute("cx", wx0.toFixed(1));
+          wandDotRef.current.setAttribute("cy", wy0.toFixed(1));
+        }
+        if (wandLabelRef.current) {
+          wandLabelRef.current.style.transform = `translate3d(${(wx1 - 6).toFixed(1)}px, ${wy1.toFixed(1)}px, 0) translate(-100%, -50%)`;
+        }
+      }
     };
     loop();
 
@@ -1857,35 +1968,137 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
         </div>
       </div>
 
-      {/* 100% Frameless Transparent 3D Canvas Floating Directly in Relief on the Page */}
-      <div
-        ref={mountRef}
-        className="relative h-[245px] sm:h-[335px] lg:h-[485px] w-full cursor-grab active:cursor-grabbing touch-none"
-        title="Glissez pour pivoter • Molette ou 2 doigts pour zoomer dans l'épiderme"
-      />
+      {/* 100% Frameless Transparent 3D Canvas + Real-Time 3D-Projected Anatomical Callout Legend */}
+      <div className="relative h-[265px] sm:h-[345px] lg:h-[490px] w-full">
+        <div
+          ref={mountRef}
+          className="h-full w-full cursor-grab active:cursor-grabbing touch-none"
+          title="Glissez pour pivoter • Molette ou 2 doigts pour zoomer dans l'épiderme"
+        />
 
-      {/* Minimal borderless biological legend on desktop (single crisp non-wrapping line) */}
-      <div className="pointer-events-none hidden lg:flex flex-col items-center gap-1 border-t border-[#E4D6C8]/70 pt-3 text-[11px] text-[#6E5E53]">
-        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
+        {/* Crisp 3D-to-2D Projected Leader Lines & Anchor Pins (SVG) */}
+        <svg
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+        >
+          {/* Gliding LumiaSculpt™ Head Pointer */}
+          <line
+            ref={wandLineRef}
+            stroke={cfg.css}
+            strokeWidth="1.25"
+            strokeOpacity="0.65"
+            strokeDasharray="3 3"
+          />
+          <circle
+            ref={wandDotRef}
+            r="3.5"
+            fill={cfg.css}
+            stroke="#FFFFFF"
+            strokeWidth="1.5"
+          />
+
+          {/* 3 Biological Skin Layer Pointers (Épiderme, Derme & Collagène, Muscles Faciaux) */}
           {DEPTH_LAYERS.map((layer, idx) => {
-            const active = cfg.activeLayerIndex === idx;
+            const isActive = cfg.activeLayerIndex === idx;
+            const accent = isActive ? cfg.css : "#8E776C";
             return (
-              <span
-                key={layer.name}
-                className={`inline-flex items-center gap-1.5 whitespace-nowrap transition-colors ${
-                  active ? "font-semibold text-[#1E1916]" : "text-[#8C7B6E]"
-                }`}
-              >
-                <span
-                  className="h-2 w-2 rounded-full shrink-0"
-                  style={{ backgroundColor: active ? cfg.css : layer.swatch }}
+              <g key={layer.name}>
+                <line
+                  ref={(el) => {
+                    pinLineRefs.current[idx] = el;
+                  }}
+                  stroke={accent}
+                  strokeWidth={isActive ? "1.6" : "1.1"}
+                  strokeOpacity={isActive ? "0.9" : "0.48"}
                 />
-                {layer.name} <span className="text-[10px] opacity-75">({layer.depth})</span>
-              </span>
+                <circle
+                  ref={(el) => {
+                    pinRingRefs.current[idx] = el;
+                  }}
+                  r={isActive ? "7.5" : "5"}
+                  fill="none"
+                  stroke={accent}
+                  strokeWidth="1.2"
+                  strokeOpacity={isActive ? "0.48" : "0.22"}
+                />
+                <circle
+                  ref={(el) => {
+                    pinDotRefs.current[idx] = el;
+                  }}
+                  r={isActive ? "3.8" : "2.8"}
+                  fill={isActive ? cfg.css : layer.swatch}
+                  stroke="#FFFFFF"
+                  strokeWidth="1.4"
+                />
+              </g>
             );
           })}
+        </svg>
+
+        {/* Floating Retina 3D Callout Labels (Zero Heavy Boxes — Whisper-Light Frosted Glass) */}
+        <div
+          ref={wandLabelRef}
+          className="pointer-events-none absolute top-0 left-0 will-change-transform text-right"
+        >
+          <div className="inline-flex flex-col items-end rounded-lg bg-[#FFFDFB]/82 px-2 py-1 backdrop-blur-sm">
+            <span className="text-[10px] sm:text-[11px] font-bold leading-none text-[#181312] whitespace-nowrap">
+              Tête LumiaSculpt™
+            </span>
+            <span
+              className="mt-0.5 text-[9px] sm:text-[10px] font-semibold leading-none whitespace-nowrap"
+              style={{ color: cfg.css }}
+            >
+              {cfg.shortLabel === "EMS 45°" ? "EMS + 45 °C" : cfg.wavelength.replace(" + Sonique", "")}
+            </span>
+          </div>
         </div>
-        <span className="text-[11px] font-medium" style={{ color: cfg.css }}>
+
+        {DEPTH_LAYERS.map((layer, idx) => {
+          const isActive = cfg.activeLayerIndex === idx;
+          return (
+            <div
+              key={layer.name}
+              ref={(el) => {
+                pinLabelRefs.current[idx] = el;
+              }}
+              className="pointer-events-none absolute top-0 left-0 will-change-transform"
+            >
+              <div
+                className={`rounded-lg px-2 py-1 backdrop-blur-sm transition-all duration-300 ${
+                  isActive
+                    ? "bg-white/92 shadow-[0_6px_18px_-8px_rgba(24,19,18,0.22)] ring-1 ring-[#EFE1DA]"
+                    : "bg-[#FFFDFB]/72 opacity-80"
+                }`}
+              >
+                <div className="flex items-baseline gap-1.5 whitespace-nowrap">
+                  <span
+                    className={`text-[10px] sm:text-[11px] leading-none ${
+                      isActive ? "font-bold text-[#181312]" : "font-semibold text-[#5C4E48]"
+                    }`}
+                  >
+                    <span className="sm:hidden">{layer.shortName}</span>
+                    <span className="hidden sm:inline">{layer.name}</span>
+                  </span>
+                  <span
+                    className="text-[9px] font-mono font-semibold leading-none"
+                    style={{ color: isActive ? cfg.css : "#8E776C" }}
+                  >
+                    {layer.depth}
+                  </span>
+                </div>
+                <p className="hidden sm:block mt-0.5 text-[9.5px] leading-tight text-[#78655E] whitespace-nowrap">
+                  {layer.detail}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Minimal active action summary line on desktop (the 3D pins themselves now serve as the live anatomical legend!) */}
+      <div className="pointer-events-none hidden lg:flex items-center justify-center gap-2 border-t border-[#EFE1DA]/80 pt-2.5 text-[11px]">
+        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: cfg.css }} />
+        <span className="font-medium" style={{ color: cfg.css }}>
           {cfg.effectSummary}
         </span>
       </div>

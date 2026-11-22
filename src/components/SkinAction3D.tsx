@@ -1998,9 +1998,9 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
       }
       pAttr.needsUpdate = true;
 
-      // Smooth automatic 360° turntable camera orbit + ultra-macro zoom tracking
+      // Smooth, slow luxury 360° turntable camera orbit (~74s/tour) + ultra-macro zoom tracking
       if (!isDragging && activePointers.size === 0) {
-        autoOrbitAngle += dt * 0.34;
+        autoOrbitAngle += dt * 0.085;
       }
       userYaw += (targetYaw - userYaw) * Math.min(1, dt * 7);
       userPitch += (targetPitch - userPitch) * Math.min(1, dt * 7);
@@ -2025,7 +2025,7 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
       const focusZ = rightZ * sideBalance + glideZ * 0.35 * zoomFactor;
 
       const baseHeight =
-        (2.9 + Math.sin(t * 0.38) * 0.22 + userPitch * 2.2) * (effectiveRadius / DEFAULT_RADIUS);
+        (2.9 + Math.sin(t * 0.16) * 0.14 + userPitch * 2.2) * (effectiveRadius / DEFAULT_RADIUS);
       const camY = Math.max(0.45, Math.min(4.8, baseHeight));
       camera.position.set(
         focusX + Math.sin(orbitTheta) * effectiveRadius,

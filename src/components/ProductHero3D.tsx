@@ -637,9 +637,9 @@ export function ProductHero3D() {
       camera.updateProjectionMatrix();
       isMobile = w < 900;
       if (isMobile) {
-        // Seated squarely on the sunlit travertine tabletop right beside the orchid vase
-        defaultPos.set(0.18, -0.74, 0);
-        defaultScale = 0.45;
+        // Seated dead-center on the broad sunlit travertine tabletop (bg-[86%_82%], zero table edge visible!)
+        defaultPos.set(0.22, -0.68, 0);
+        defaultScale = 0.44;
       } else {
         // Seated proportionally over the travertine vanity counter (right side of room)
         defaultPos.set(2.05, -0.18, 0);
@@ -938,10 +938,10 @@ export function ProductHero3D() {
       className="relative w-full overflow-hidden border-b border-[#E8DDD2] bg-[#EFE3D4] text-[#1E1916] [content-visibility:auto] [contain-intrinsic-size:auto_none_auto_760px]"
     >
       {/* Architectural Parisian Spa / Institut Background Image with 3D Parallax */}
-      {/* Mobile crops directly onto the sunlit travertine vanity tabletop + orchid vase (74% X, 78% Y) */}
+      {/* Mobile crops squarely onto the wide travertine vanity tabletop (86% X, 82% Y) so the wand sits deep on the desk */}
       <div
         ref={bgRef}
-        className="pointer-events-none absolute inset-0 bg-cover bg-[74%_78%] md:bg-center bg-no-repeat will-change-transform"
+        className="pointer-events-none absolute inset-0 bg-cover bg-[86%_82%] md:bg-center bg-no-repeat will-change-transform"
         style={{
           backgroundImage: `url('/images/spa-institut-bg.jpg')`,
           transform: "scale(1.06)",

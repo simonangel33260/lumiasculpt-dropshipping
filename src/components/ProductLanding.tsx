@@ -25,6 +25,8 @@ const LED_MODES = [
   {
     code: "630 nm",
     eyebrow: "Photobiomodulation Rouge",
+    image: "/images/synergy-red.jpg",
+    imageAlt: "Peau lumineuse baignée de lumière rouge 630 nm sur l'ovale du visage et le cou",
     orbBg: "from-[#FBE4E7] to-[#F5C6CE]",
     orbRing: "border-[#EAB0BA]",
     orbText: "text-[#A63446]",
@@ -36,6 +38,8 @@ const LED_MODES = [
   {
     code: "520 nm",
     eyebrow: "Lumière Verte & Sonique",
+    image: "/images/synergy-green.jpg",
+    imageAlt: "Pommette hydratée avec gouttes de sérum et reflet vert apaisant",
     orbBg: "from-[#E3F3EB] to-[#C6E6D6]",
     orbRing: "border-[#A7D7C0]",
     orbText: "text-[#1E7552]",
@@ -47,6 +51,8 @@ const LED_MODES = [
   {
     code: "465 nm",
     eyebrow: "Spectre Bleu Apaisant",
+    image: "/images/synergy-blue.jpg",
+    imageAlt: "Grain de peau lisse et velouté sous lumière bleue purifiante 465 nm",
     orbBg: "from-[#E4F0FB] to-[#C8E0F7]",
     orbRing: "border-[#AACDF0]",
     orbText: "text-[#2563A6]",
@@ -58,6 +64,8 @@ const LED_MODES = [
   {
     code: "45 °C",
     eyebrow: "Micro-Courants EMS & Thermie",
+    image: "/images/synergy-warm.jpg",
+    imageAlt: "Goutte de sérum doré glissant sur la peau chaude du cou",
     orbBg: "from-[#FBF0E1] to-[#F3DAC0]",
     orbRing: "border-[#E3BF99]",
     orbText: "text-[#9A5840]",
@@ -277,7 +285,36 @@ export function ProductLanding({ initialStock }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-[#111114] font-[family-name:var(--font-sans)] pb-24 md:pb-16">
+    <div className="relative min-h-screen bg-[#FAF5EF] text-[#1E1916] font-[family-name:var(--font-sans)] pb-24 md:pb-16 overflow-x-clip">
+      {/* Subtle Sensory Skin-Silk & Organic Contour Watermark across the page */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 opacity-[0.06] mix-blend-multiply bg-cover bg-center"
+        style={{
+          backgroundImage: `url('/images/synergy-red.jpg')`,
+          filter: "blur(24px) saturate(0.85)",
+        }}
+      />
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 1440 900"
+        fill="none"
+        className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-[0.22]"
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M-120 260 C 260 120, 560 440, 980 280 C 1220 190, 1400 260, 1560 180"
+          stroke="#D4B59E"
+          strokeWidth="1.2"
+        />
+        <path
+          d="M-100 680 C 320 540, 680 820, 1140 620 C 1340 530, 1440 610, 1560 540"
+          stroke="#DFC4B0"
+          strokeWidth="1"
+        />
+      </svg>
+
+      <div className="relative z-10">
       {/* 1. Top Announcement Bar */}
       <div className="bg-[#111114] px-4 py-2 text-center text-[11px] sm:text-xs font-medium tracking-wide text-[#FAF7F2]">
         ✦ OFFRE LANCEMENT : Jusqu&apos;à -59 % sur les Coffrets + Livraison Suivie Offerte • 60
@@ -766,22 +803,22 @@ export function ProductLanding({ initialStock }: Props) {
           </div>
         </section>
 
-        {/* 6. 4 Synergies Institut — Luminous Editorial Showcase */}
+        {/* 6. 4 Synergies Institut — Luminous Editorial Showcase with Macro Skin Photography */}
         <section
           id="technologie"
-          className="relative overflow-hidden border-y border-[#E8DDD2] bg-gradient-to-b from-[#F5ECE3] via-[#FBF7F2] to-[#F5ECE3] py-16 sm:py-24 text-[#1E1916]"
+          className="relative overflow-hidden border-y border-[#E8DDD2] bg-gradient-to-b from-[#F5EAE0]/90 via-[#FCF7F2]/95 to-[#F4E7DC]/90 py-16 sm:py-24 text-[#1E1916]"
         >
           <div
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(50% 45% at 50% 0%, rgba(255, 255, 255, 0.85) 0%, transparent 70%)",
+                "radial-gradient(55% 45% at 50% 0%, rgba(255, 248, 242, 0.9) 0%, transparent 72%)",
             }}
           />
 
           <div className="relative mx-auto max-w-6xl px-4">
             <div className="mx-auto max-w-2xl text-center">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#DFD0C1] bg-white/80 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8C6239]">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#DFD0C1] bg-white/85 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8C6239]">
                 Savoir-Faire Institut • Lumière &amp; Micro-Courants
               </span>
               <h2 className="mt-4 font-[family-name:var(--font-serif)] text-3xl sm:text-5xl font-bold leading-[1.08] tracking-tight text-[#1E1916]">
@@ -790,51 +827,61 @@ export function ProductLanding({ initialStock }: Props) {
               </h2>
               <p className="mt-3 text-sm sm:text-base leading-relaxed text-[#5C524B]">
                 Chaque mode associe une longueur d&apos;onde LED ciblée à la douceur thermique pour
-                s&apos;adapter aux besoins de votre peau, matin et soir.
+                révéler une peau plus ferme, apaisée et lumineuse, matin et soir.
               </p>
             </div>
 
-            <div className="mt-12 grid gap-6 md:grid-cols-2">
+            <div className="mt-12 grid gap-7 md:grid-cols-2">
               {LED_MODES.map((mode, idx) => (
                 <article
                   key={mode.code}
-                  className="group relative flex flex-col justify-between rounded-3xl border border-[#E7DACD] bg-white/90 p-7 sm:p-8 shadow-xs backdrop-blur-sm transition hover:border-[#D6C2AF] hover:shadow-md"
+                  className="group relative flex flex-col overflow-hidden rounded-3xl border border-[#E7DACD] bg-white/92 shadow-xs backdrop-blur-sm transition hover:border-[#D6C2AF] hover:shadow-lg"
                 >
-                  <div>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border bg-gradient-to-br shadow-inner ${mode.orbBg} ${mode.orbRing}`}
-                        >
-                          <span className={`text-xs font-bold tracking-tight ${mode.orbText}`}>
-                            {mode.code}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#7D6A5C]">
-                            <span className={`h-1.5 w-1.5 rounded-full ${mode.dot}`} />
-                            {mode.eyebrow}
-                          </p>
-                          <h3 className="mt-0.5 font-[family-name:var(--font-serif)] text-2xl font-bold text-[#1E1916]">
-                            {mode.title}
-                          </h3>
-                        </div>
-                      </div>
-                      <span className="font-[family-name:var(--font-serif)] text-2xl italic text-[#D4C3B4]">
-                        0{idx + 1}
+                  {/* Macro Skin Editorial Photo */}
+                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#F2E5D9]">
+                    <img
+                      src={mode.image}
+                      alt={mode.imageAlt}
+                      width={960}
+                      height={600}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1E1916]/35 via-transparent to-transparent" />
+                    <div className="absolute bottom-3.5 left-4 right-4 flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/92 backdrop-blur-md px-3 py-1 text-[11px] font-semibold text-[#1E1916] shadow-xs">
+                        <span className={`h-2 w-2 rounded-full ${mode.dot}`} />
+                        {mode.eyebrow}
+                      </span>
+                      <span className="rounded-full bg-[#1E1916]/75 backdrop-blur-md px-2.5 py-1 text-[11px] font-bold tracking-wide text-[#FAF5EF]">
+                        {mode.code}
                       </span>
                     </div>
-
-                    <p className="mt-4 text-sm sm:text-[15px] leading-relaxed text-[#574D46]">
-                      {mode.desc}
-                    </p>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between border-t border-[#F0E6DC] pt-4 text-xs">
-                    <span className="font-medium text-[#7D5A44]">{mode.benefit}</span>
-                    <span className="rounded-full bg-[#FAF6F1] border border-[#E8DDD2] px-2.5 py-0.5 font-semibold text-[#5C524B]">
-                      {mode.code}
-                    </span>
+                  {/* Editorial Card Body */}
+                  <div className="flex flex-1 flex-col justify-between p-6 sm:p-7">
+                    <div>
+                      <div className="flex items-baseline justify-between gap-3">
+                        <h3 className="font-[family-name:var(--font-serif)] text-2xl sm:text-[26px] font-bold text-[#1E1916]">
+                          {mode.title}
+                        </h3>
+                        <span className="font-[family-name:var(--font-serif)] text-xl italic text-[#D2BFA9]">
+                          0{idx + 1}
+                        </span>
+                      </div>
+
+                      <p className="mt-2.5 text-sm sm:text-[15px] leading-relaxed text-[#574D46]">
+                        {mode.desc}
+                      </p>
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-between border-t border-[#F0E6DC] pt-4 text-xs">
+                      <span className="font-semibold text-[#8C563E]">✦ {mode.benefit}</span>
+                      <span className={`rounded-full border bg-gradient-to-br px-2.5 py-0.5 font-bold ${mode.orbBg} ${mode.orbRing} ${mode.orbText}`}>
+                        {mode.code}
+                      </span>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -1008,6 +1055,7 @@ export function ProductLanding({ initialStock }: Props) {
             Commander — {formatEur(totalEur)}
           </a>
         </div>
+      </div>
       </div>
     </div>
   );

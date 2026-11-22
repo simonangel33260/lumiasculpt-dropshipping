@@ -973,9 +973,9 @@ export function ProductHero3D() {
               Institut LumiaSculpt™ • Paris
             </span>
 
-            <h1 className="font-[family-name:var(--font-serif)] text-4xl font-bold leading-[1.03] tracking-tight text-[#1E1916] sm:text-6xl">
+            <h1 className="font-[family-name:var(--font-serif)] text-4xl font-bold leading-[1.03] tracking-tight text-[#181312] sm:text-6xl">
               Le soin cabine expert,{" "}
-              <span className="italic text-[#9A5840]">dans votre rituel du soir.</span>
+              <span className="italic text-[#C8465A]">dans votre rituel du soir.</span>
             </h1>
 
             <p className="max-w-md text-sm leading-relaxed text-[#4E443E] sm:text-base">
@@ -986,7 +986,7 @@ export function ProductHero3D() {
             <div className="pointer-events-auto flex flex-wrap items-center gap-3 pt-1">
               <a
                 href="#commander"
-                className="rounded-full bg-[#1E1916] px-6 py-3.5 text-sm font-bold text-[#FAF7F2] shadow-sm transition hover:bg-[#332B26]"
+                className="rounded-full bg-gradient-to-r from-[#C8465A] to-[#A83247] px-6 py-3.5 text-sm font-bold text-white shadow-[0_12px_28px_-8px_rgba(200,70,90,0.52)] transition hover:brightness-105"
               >
                 Découvrir l&apos;offre — dès 49,90 €
               </a>
@@ -995,8 +995,8 @@ export function ProductHero3D() {
                 onClick={() => setExploded((v) => !v)}
                 className={`rounded-full border px-5 py-3.5 text-sm font-semibold transition backdrop-blur-md ${
                   exploded
-                    ? "border-[#9A5840] bg-[#9A5840] text-white"
-                    : "border-[#CBB8A8] bg-white/80 text-[#1E1916] hover:bg-white"
+                    ? "border-[#C8465A] bg-[#C8465A] text-white"
+                    : "border-[#DFC7CC] bg-white/88 text-[#181312] hover:bg-white"
                 }`}
               >
                 {exploded ? "✓ Vue assemblée" : "✦ Explorer les 3 couches"}

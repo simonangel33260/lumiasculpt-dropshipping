@@ -16,10 +16,10 @@ const MODE_CONFIG = [
     id: 0 as SynergyModeId,
     shortLabel: "Rouge",
     panelKey: "LED 630",
-    color: 0xd61f42,
-    glowColor: 0xff4d6d,
-    sssColor: 0xff2e55,
-    css: "#C83E52",
+    color: 0xe6264e,
+    glowColor: 0xff5478,
+    sssColor: 0xff335c,
+    css: "#D63354",
     wavelength: "LED Rouge 630 nm",
     depthLabel: "Derme • Collagène (1,5 mm)",
     effectSummary: "Stimule les fibroblastes & retend le collagène",
@@ -31,10 +31,10 @@ const MODE_CONFIG = [
     id: 1 as SynergyModeId,
     shortLabel: "Verte",
     panelKey: "PURETÉ",
-    color: 0x0f8a5a,
-    glowColor: 0x32de96,
-    sssColor: 0x1ac47d,
-    css: "#1E8E63",
+    color: 0x10b274,
+    glowColor: 0x3ef0a6,
+    sssColor: 0x18d489,
+    css: "#129C67",
     wavelength: "LED Verte 520 nm + Sonique",
     depthLabel: "Microcirculation & Drainage (1,1 mm)",
     effectSummary: "Ondes soniques 7 000 tr/min & flux lymphatique",
@@ -46,10 +46,10 @@ const MODE_CONFIG = [
     id: 2 as SynergyModeId,
     shortLabel: "Bleue",
     panelKey: "PORES",
-    color: 0x1d68d4,
-    glowColor: 0x52a5ff,
-    sssColor: 0x2c82f5,
-    css: "#2563A6",
+    color: 0x2478ff,
+    glowColor: 0x62b0ff,
+    sssColor: 0x388cff,
+    css: "#226CE0",
     wavelength: "LED Bleue 465 nm",
     depthLabel: "Épiderme & Pores (0,2 mm)",
     effectSummary: "Apaise les rougeurs & resserre le grain de peau",
@@ -61,10 +61,10 @@ const MODE_CONFIG = [
     id: 3 as SynergyModeId,
     shortLabel: "EMS 45°",
     panelKey: "LIFT EMS",
-    color: 0xd96614,
-    glowColor: 0xffa438,
-    sssColor: 0xff7b1c,
-    css: "#B85D19",
+    color: 0xf07818,
+    glowColor: 0xffb347,
+    sssColor: 0xff8826,
+    css: "#D46514",
     wavelength: "EMS + Thermie 45 °C",
     depthLabel: "Fibres Musculaires (3,5 mm)",
     effectSummary: "Micro-courants tonifiants & effet lift profond",
@@ -386,6 +386,11 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mountRef = useRef<HTMLDivElement>(null);
   const modeRef = useRef<SynergyModeId>(activeMode);
+  const controlsRef = useRef<{
+    zoomIn: () => void;
+    zoomOut: () => void;
+    reset: () => void;
+  } | null>(null);
 
   useEffect(() => {
     modeRef.current = activeMode;
@@ -405,7 +410,7 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
+    renderer.toneMappingExposure = 1.14;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -455,10 +460,10 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     camera.position.set(1.6, 2.65, 7.6);
     camera.lookAt(0, -0.05, 0);
 
-    // Cinematic Studio Lighting + Soft PCF Cast Shadows
-    scene.add(new THREE.HemisphereLight(0xfff7f0, 0xc89a84, 0.52));
+    // Bright, fresh sunlit Parisian studio lighting + Soft PCF Cast Shadows
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xffdfd0, 0.86));
 
-    const keyLight = new THREE.DirectionalLight(0xfff7ee, 1.9);
+    const keyLight = new THREE.DirectionalLight(0xfffaf4, 2.3);
     keyLight.position.set(-4.8, 5.6, 3.8);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.set(2048, 2048);
@@ -473,11 +478,11 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     keyLight.shadow.radius = 4;
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0xffdfc8, 1.2);
+    const rimLight = new THREE.DirectionalLight(0xffe6d4, 1.45);
     rimLight.position.set(5.4, 3.0, -3.8);
     scene.add(rimLight);
 
-    const frontFill = new THREE.DirectionalLight(0xf6dfd2, 0.52);
+    const frontFill = new THREE.DirectionalLight(0xfff0e6, 0.78);
     frontFill.position.set(1.2, 1.2, 5.8);
     scene.add(frontFill);
 
@@ -1331,24 +1336,66 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     root.add(particles);
 
     // =========================================================================
-    // INTERACTIVE 360° DRAG-TO-ORBIT + AUTO 360° ORBIT
+    // INTERACTIVE 360° DRAG-TO-ORBIT + PINCH / WHEEL / BUTTON MACRO ZOOM
     // =========================================================================
+    const activePointers = new Map<number, { x: number; y: number }>();
     let isDragging = false;
     let lastX = 0;
     let lastY = 0;
+    let lastPinchDist = 0;
     let autoOrbitAngle = 0.22;
     let userYaw = 0;
     let userPitch = 0;
     let targetYaw = 0;
     let targetPitch = 0;
 
+    const DEFAULT_RADIUS = 7.65;
+    const MIN_RADIUS = 2.85; // deep ultra-macro zoom right into skin pores, keratinocytes & collagen!
+    const MAX_RADIUS = 9.4;
+    let currentRadius = DEFAULT_RADIUS;
+    let targetRadius = DEFAULT_RADIUS;
+
+    controlsRef.current = {
+      zoomIn: () => {
+        targetRadius = Math.max(MIN_RADIUS, targetRadius - 1.35);
+      },
+      zoomOut: () => {
+        targetRadius = Math.min(MAX_RADIUS, targetRadius + 1.35);
+      },
+      reset: () => {
+        targetRadius = DEFAULT_RADIUS;
+        targetPitch = 0;
+      },
+    };
+
     const onPointerDown = (e: PointerEvent) => {
-      isDragging = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       mount.setPointerCapture(e.pointerId);
+      if (activePointers.size === 1) {
+        isDragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+      } else if (activePointers.size === 2) {
+        isDragging = false;
+        const pts = Array.from(activePointers.values());
+        lastPinchDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      }
     };
     const onPointerMove = (e: PointerEvent) => {
+      if (!activePointers.has(e.pointerId)) return;
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (activePointers.size === 2) {
+        const pts = Array.from(activePointers.values());
+        const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+        if (lastPinchDist > 0) {
+          const delta = lastPinchDist - dist;
+          targetRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, targetRadius + delta * 0.022));
+        }
+        lastPinchDist = dist;
+        return;
+      }
+
       if (!isDragging) return;
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
@@ -1358,15 +1405,34 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
       targetPitch = Math.max(-0.42, Math.min(0.45, targetPitch + dy * 0.005));
     };
     const onPointerUp = (e: PointerEvent) => {
-      if (!isDragging) return;
-      isDragging = false;
-      mount.releasePointerCapture(e.pointerId);
+      activePointers.delete(e.pointerId);
+      if (mount.hasPointerCapture(e.pointerId)) {
+        mount.releasePointerCapture(e.pointerId);
+      }
+      if (activePointers.size < 2) lastPinchDist = 0;
+      if (activePointers.size === 1) {
+        const [rem] = Array.from(activePointers.values());
+        lastX = rem.x;
+        lastY = rem.y;
+        isDragging = true;
+      } else {
+        isDragging = false;
+      }
+    };
+    const onWheel = (e: WheelEvent) => {
+      // Allow direct smooth zoom inside the 3D cutaway (prevent page jump while actively zooming within bounds)
+      const next = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, targetRadius + e.deltaY * 0.0055));
+      if (Math.abs(next - targetRadius) > 0.001) {
+        e.preventDefault();
+        targetRadius = next;
+      }
     };
 
     mount.addEventListener("pointerdown", onPointerDown);
     mount.addEventListener("pointermove", onPointerMove);
     mount.addEventListener("pointerup", onPointerUp);
     mount.addEventListener("pointercancel", onPointerUp);
+    mount.addEventListener("wheel", onWheel, { passive: false });
 
     // ---------- Resize ----------
     const resize = () => {
@@ -1669,25 +1735,28 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
       }
       pAttr.needsUpdate = true;
 
-      // Smooth automatic 360° turntable camera orbit
-      if (!isDragging) {
+      // Smooth automatic 360° turntable camera orbit + ultra-macro zoom tracking
+      if (!isDragging && activePointers.size === 0) {
         autoOrbitAngle += dt * 0.34;
       }
       userYaw += (targetYaw - userYaw) * Math.min(1, dt * 7);
       userPitch += (targetPitch - userPitch) * Math.min(1, dt * 7);
+      currentRadius += (targetRadius - currentRadius) * Math.min(1, dt * 7.5);
 
-      const orbitRadius = 7.75;
+      const zoomFactor = Math.max(0, Math.min(1, (DEFAULT_RADIUS - currentRadius) / (DEFAULT_RADIUS - MIN_RADIUS)));
+      const focusX = glideX * 0.42 * zoomFactor;
+      const focusY = -0.05 + 0.14 * zoomFactor;
+      const focusZ = glideZ * 0.35 * zoomFactor;
+
       const orbitTheta = autoOrbitAngle + userYaw;
-      const camY = Math.max(
-        1.25,
-        Math.min(4.1, 2.65 + Math.sin(t * 0.38) * 0.25 + userPitch * 2.2)
-      );
+      const baseHeight = (2.65 + Math.sin(t * 0.38) * 0.22 + userPitch * 2.2) * (currentRadius / DEFAULT_RADIUS);
+      const camY = Math.max(0.42, Math.min(4.4, baseHeight));
       camera.position.set(
-        Math.sin(orbitTheta) * orbitRadius,
+        focusX + Math.sin(orbitTheta) * currentRadius,
         camY,
-        Math.cos(orbitTheta) * orbitRadius
+        focusZ + Math.cos(orbitTheta) * currentRadius
       );
-      camera.lookAt(0, -0.05, 0);
+      camera.lookAt(focusX, focusY, focusZ);
 
       renderer.render(scene, camera);
     };
@@ -1695,12 +1764,14 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
 
     return () => {
       disposed = true;
+      controlsRef.current = null;
       cancelAnimationFrame(raf);
       ro.disconnect();
       mount.removeEventListener("pointerdown", onPointerDown);
       mount.removeEventListener("pointermove", onPointerMove);
       mount.removeEventListener("pointerup", onPointerUp);
       mount.removeEventListener("pointercancel", onPointerUp);
+      mount.removeEventListener("wheel", onWheel);
       container.removeEventListener("contentvisibilityautostatechange", onCV);
       document.removeEventListener("visibilitychange", onVis);
       scene.traverse((obj) => {
@@ -1739,28 +1810,58 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
   return (
     <div
       ref={containerRef}
-      className="relative bg-[#FAF5EF]/90 backdrop-blur-md lg:bg-transparent lg:backdrop-blur-none [content-visibility:auto] [contain-intrinsic-size:auto_none_auto_480px]"
+      className="relative bg-[#FFFDFB]/92 backdrop-blur-md lg:bg-transparent lg:backdrop-blur-none [content-visibility:auto] [contain-intrinsic-size:auto_none_auto_480px]"
     >
-      {/* Whisper-light borderless status header directly over the floating 3D scene */}
-      <div className="pointer-events-none flex flex-wrap items-center justify-between gap-2 px-1 pb-1 text-[11px]">
-        <span className="inline-flex items-center gap-2 font-semibold text-[#1E1916]">
+      {/* Whisper-light borderless status header + tactile Zoom controls (+ / − / ↺) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-1 text-[11px]">
+        <span className="pointer-events-none inline-flex items-center gap-2 font-semibold text-[#181312]">
           <span
-            className="h-2 w-2 rounded-full animate-pulse"
-            style={{ backgroundColor: cfg.css }}
+            className="h-2.5 w-2.5 rounded-full animate-pulse"
+            style={{ backgroundColor: cfg.css, boxShadow: `0 0 10px ${cfg.css}88` }}
           />
           {cfg.wavelength}
-          <span className="font-normal text-[#7B6B5F]">— {cfg.depthLabel}</span>
+          <span className="font-normal text-[#7B6862]">— {cfg.depthLabel}</span>
         </span>
-        <span className="hidden sm:inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-[#8B7A6E]">
-          <span>↻</span> 360°
-        </span>
+
+        <div className="flex items-center gap-1.5">
+          <span className="hidden sm:inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] text-[#8B756E] mr-1">
+            ↻ 360° • Molette / Pincer
+          </span>
+          <button
+            type="button"
+            onClick={() => controlsRef.current?.zoomIn()}
+            aria-label="Zoomer dans l'épiderme 3D"
+            title="Zoomer"
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-[#E8D8D2] bg-white/90 text-sm font-bold text-[#181312] shadow-2xs transition hover:border-[#C8465A] hover:text-[#C8465A]"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={() => controlsRef.current?.zoomOut()}
+            aria-label="Dézoomer"
+            title="Dézoomer"
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-[#E8D8D2] bg-white/90 text-sm font-bold text-[#181312] shadow-2xs transition hover:border-[#C8465A] hover:text-[#C8465A]"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            onClick={() => controlsRef.current?.reset()}
+            aria-label="Réinitialiser le zoom"
+            title="Réinitialiser la vue"
+            className="flex h-7 items-center justify-center rounded-full border border-[#E8D8D2] bg-white/90 px-2.5 text-[10px] font-semibold text-[#5E4E48] shadow-2xs transition hover:border-[#C8465A] hover:text-[#C8465A]"
+          >
+            ↺
+          </button>
+        </div>
       </div>
 
       {/* 100% Frameless Transparent 3D Canvas Floating Directly in Relief on the Page */}
       <div
         ref={mountRef}
         className="relative h-[245px] sm:h-[335px] lg:h-[485px] w-full cursor-grab active:cursor-grabbing touch-none"
-        title="Glissez pour faire pivoter la coupe 3D"
+        title="Glissez pour pivoter • Molette ou 2 doigts pour zoomer dans l'épiderme"
       />
 
       {/* Minimal borderless biological legend on desktop (single crisp non-wrapping line) */}

@@ -532,8 +532,6 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     scene.add(frontFill);
 
     const root = new THREE.Group();
-    root.rotation.y = -0.2;
-    root.rotation.x = 0.04;
     scene.add(root);
 
     // Procedural Textures
@@ -640,27 +638,115 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     });
     root.add(new THREE.Mesh(epiBodyGeo, epiBodyMat));
 
-    const bmPoints: THREE.Vector3[] = [];
-    for (let s = 0; s <= papillaSteps; s++) {
-      const x = -halfW + (s / papillaSteps) * W;
-      bmPoints.push(new THREE.Vector3(x, papillaWave(x), halfD + 0.012));
-    }
-    const bmRibbon = new THREE.Mesh(
-      new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bmPoints), 96, 0.019, 10, false),
-      new THREE.MeshPhysicalMaterial({
-        color: 0xc27058,
-        emissive: new THREE.Color(0xa6503c),
-        emissiveIntensity: 0.18,
-        roughness: 0.22,
-        clearcoat: 0.75,
-      })
-    );
-    bmRibbon.castShadow = true;
-    root.add(bmRibbon);
+    // Basement membrane ribbon along BOTH front (+Z) and back (-Z) scalloped dermal papillae + side caps
+    const bmMat = new THREE.MeshPhysicalMaterial({
+      color: 0xc27058,
+      emissive: new THREE.Color(0xa6503c),
+      emissiveIntensity: 0.18,
+      roughness: 0.22,
+      clearcoat: 0.75,
+    });
+    ([halfD + 0.012, -(halfD + 0.012)] as const).forEach((zEdge) => {
+      const pts: THREE.Vector3[] = [];
+      for (let s = 0; s <= papillaSteps; s++) {
+        const x = -halfW + (s / papillaSteps) * W;
+        pts.push(new THREE.Vector3(x, papillaWave(x), zEdge));
+      }
+      const ribbon = new THREE.Mesh(
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 96, 0.019, 10, false),
+        bmMat
+      );
+      ribbon.castShadow = true;
+      root.add(ribbon);
+    });
+    ([-halfW - 0.012, halfW + 0.012] as const).forEach((xEdge) => {
+      const sideY = papillaWave(xEdge > 0 ? halfW : -halfW);
+      const pts = [
+        new THREE.Vector3(xEdge, sideY, -halfD),
+        new THREE.Vector3(xEdge, sideY, halfD),
+      ];
+      const sideRibbon = new THREE.Mesh(
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 12, 0.019, 8, false),
+        bmMat
+      );
+      root.add(sideRibbon);
+    });
 
-    // Smooth Organic 3D Keratinocyte Cellular Strata
-    const kCount = 132;
-    const kGeo = new THREE.SphereGeometry(0.05, 16, 12);
+    // Smooth Organic 3D Keratinocyte Cellular Strata around ALL 4 sides (for 360° camera orbit!)
+    const kData: {
+      x: number;
+      y: number;
+      z: number;
+      sx: number;
+      sy: number;
+      sz: number;
+      phase: number;
+      h: number;
+      s: number;
+      l: number;
+    }[] = [];
+    const dummy = new THREE.Object3D();
+    const cellColor = new THREE.Color();
+    let cSeed = 7;
+    const cRand = () => {
+      cSeed = (cSeed * 16807) % 2147483647;
+      return (cSeed - 1) / 2147483646;
+    };
+
+    // Front (+Z) & Back (-Z) cellular faces
+    ([1, -1] as const).forEach((zSign) => {
+      const cols = 42;
+      for (let col = 0; col < cols; col++) {
+        for (let row = 0; row < 3; row++) {
+          const frac = (col + (row % 2) * 0.48) / cols;
+          const x = -halfW + 0.12 + frac * (W - 0.24) + (cRand() - 0.5) * 0.02;
+          const baseP = papillaWave(x);
+          const y = baseP + 0.044 + row * 0.084 + (cRand() - 0.5) * 0.012;
+          const z = zSign * (halfD - 0.036 - (row === 1 ? 0.018 : 0)) + (cRand() - 0.5) * 0.012;
+          kData.push({
+            x,
+            y,
+            z,
+            sx: (1.18 - row * 0.07) * (0.9 + cRand() * 0.22),
+            sy: (0.64 + (2 - row) * 0.11) * (0.9 + cRand() * 0.2),
+            sz: 0.72,
+            phase: (col * 3 + row) * 0.41,
+            h: 0.052 + (cRand() - 0.5) * 0.014,
+            s: 0.46 - row * 0.06 + (cRand() - 0.5) * 0.06,
+            l: 0.72 + row * 0.05 + (cRand() - 0.5) * 0.05,
+          });
+        }
+      }
+    });
+
+    // Left (-X) & Right (+X) cellular faces
+    ([1, -1] as const).forEach((xSign) => {
+      const cols = 22;
+      const sideBaseP = papillaWave(xSign > 0 ? halfW : -halfW);
+      for (let col = 0; col < cols; col++) {
+        for (let row = 0; row < 3; row++) {
+          const frac = (col + (row % 2) * 0.48) / cols;
+          const z = -halfD + 0.12 + frac * (D - 0.24) + (cRand() - 0.5) * 0.02;
+          const y = sideBaseP + 0.044 + row * 0.084 + (cRand() - 0.5) * 0.012;
+          const x = xSign * (halfW - 0.036 - (row === 1 ? 0.018 : 0)) + (cRand() - 0.5) * 0.012;
+          kData.push({
+            x,
+            y,
+            z,
+            sx: 0.72,
+            sy: (0.64 + (2 - row) * 0.11) * (0.9 + cRand() * 0.2),
+            sz: (1.18 - row * 0.07) * (0.9 + cRand() * 0.22),
+            phase: (col * 3 + row) * 0.47,
+            h: 0.052 + (cRand() - 0.5) * 0.014,
+            s: 0.46 - row * 0.06 + (cRand() - 0.5) * 0.06,
+            l: 0.72 + row * 0.05 + (cRand() - 0.5) * 0.05,
+          });
+        }
+      }
+    });
+
+    const kCount = kData.length;
+    const kGeo = new THREE.SphereGeometry(0.05, 14, 10);
     const kMat = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       emissive: new THREE.Color(0x1d68d4),
@@ -675,35 +761,14 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     keratinocytes.castShadow = true;
     keratinocytes.receiveShadow = true;
 
-    const kData: { x: number; y: number; z: number; sx: number; sy: number; phase: number }[] = [];
-    const dummy = new THREE.Object3D();
-    const cellColor = new THREE.Color();
-    let cSeed = 7;
-    const cRand = () => {
-      cSeed = (cSeed * 16807) % 2147483647;
-      return (cSeed - 1) / 2147483646;
-    };
     for (let i = 0; i < kCount; i++) {
-      const row = i % 3;
-      const col = Math.floor(i / 3);
-      const frac = (col + (row % 2) * 0.48) / Math.ceil(kCount / 3);
-      const x = -halfW + 0.12 + frac * (W - 0.24) + (cRand() - 0.5) * 0.025;
-      const baseP = papillaWave(x);
-      const y = baseP + 0.044 + row * 0.084 + (cRand() - 0.5) * 0.012;
-      const z = halfD - 0.038 - (row === 1 ? 0.02 : 0) + (cRand() - 0.5) * 0.015;
-      const sx = (1.2 - row * 0.08) * (0.9 + cRand() * 0.22);
-      const sy = (0.64 + (2 - row) * 0.11) * (0.9 + cRand() * 0.2);
-      kData.push({ x, y, z, sx, sy, phase: i * 0.43 });
-      dummy.position.set(x, y, z);
-      dummy.rotation.set(0, 0, (cRand() - 0.5) * 0.25);
-      dummy.scale.set(sx, sy, 0.72);
+      const kd = kData[i];
+      dummy.position.set(kd.x, kd.y, kd.z);
+      dummy.rotation.set(0, 0, 0);
+      dummy.scale.set(kd.sx, kd.sy, kd.sz);
       dummy.updateMatrix();
       keratinocytes.setMatrixAt(i, dummy.matrix);
-
-      const h = 0.052 + (cRand() - 0.5) * 0.014;
-      const s = 0.46 - row * 0.06 + (cRand() - 0.5) * 0.06;
-      const l = 0.72 + row * 0.05 + (cRand() - 0.5) * 0.05;
-      cellColor.setHSL(h, s, l);
+      cellColor.setHSL(kd.h, kd.s, kd.l);
       keratinocytes.setColorAt(i, cellColor);
     }
     keratinocytes.instanceMatrix.needsUpdate = true;
@@ -775,7 +840,7 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     const cutawayGlowGeo = new THREE.PlaneGeometry(2.35, 1.78);
     cutawayGlowGeo.translate(0, -0.89, 0);
     const cutawayGlow = new THREE.Mesh(cutawayGlowGeo, cutawayGlowMat);
-    cutawayGlow.position.set(0, 0.42, halfD + 0.022);
+    cutawayGlow.position.set(0, 0.42, 0);
     cutawayGlow.renderOrder = 9;
     root.add(cutawayGlow);
 
@@ -1008,20 +1073,20 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     root.add(emsPulses);
 
     // =========================================================================
-    // EXACT LUMIASCULPT™ M8807 3D PRODUCT MODEL (IDENTICAL TO HEADER HERO 3D!)
+    // EXACT LUMIASCULPT™ M8807 3D PRODUCT MODEL (FLUSH CONTACT ON THE SKIN!)
     // =========================================================================
-    // wandAnchor sits at the skin-contact point beneath the treatment head
+    // wandAnchor sits directly on the skin contact point right beneath the circular treatment head
     const wandAnchor = new THREE.Group();
-    wandAnchor.position.set(0, 0.56, 0);
+    wandAnchor.position.set(0, 0.45, 0);
     root.add(wandAnchor);
 
-    // Tilt & orient the authentic M8807 wand so its chrome treatment head faces DOWN onto the skin
-    // while the FULL pearl-white handle, live black OLED display & 2 chrome buttons are visible in-frame!
+    // Orient the authentic M8807 wand so its circular electrode & LED ring sit FLUSH on the skin surface
+    // with a gentle ergonomic 8° rise along the pearl-white handle (zero air gap!)
     const wandRig = new THREE.Group();
-    wandRig.scale.setScalar(0.64);
+    wandRig.scale.setScalar(0.68);
     wandRig.rotation.order = "YXZ";
-    wandRig.rotation.x = Math.PI / 2 + 0.54; // ~121° so handle stays cleanly inside frame with zero top clipping
-    wandRig.rotation.y = 1.92; // 3/4 forward-left showcase showing OLED panel + 2 chrome buttons + chrome head!
+    wandRig.rotation.x = Math.PI / 2 + 0.14; // flat flush electrode contact on epidermis + natural grip rise
+    wandRig.rotation.y = 1.68; // graceful side-3/4 orientation cleanly viewable across the full 360° orbit
     wandAnchor.add(wandRig);
 
     // Offset so the treatment head contact face (0, 1.0, 0.831) sits right at wandRig origin (0, 0, 0)
@@ -1310,11 +1375,12 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
     root.add(particles);
 
     // =========================================================================
-    // INTERACTIVE DRAG-TO-ORBIT
+    // INTERACTIVE 360° DRAG-TO-ORBIT (Seamlessly blended with Auto 360° Orbit)
     // =========================================================================
     let isDragging = false;
     let lastX = 0;
     let lastY = 0;
+    let autoOrbitAngle = 0.22;
     let userYaw = 0;
     let userPitch = 0;
     let targetYaw = 0;
@@ -1332,8 +1398,8 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
       const dy = e.clientY - lastY;
       lastX = e.clientX;
       lastY = e.clientY;
-      targetYaw = Math.max(-0.55, Math.min(0.65, targetYaw + dx * 0.006));
-      targetPitch = Math.max(-0.24, Math.min(0.32, targetPitch + dy * 0.005));
+      targetYaw -= dx * 0.007; // free full 360° drag orbit
+      targetPitch = Math.max(-0.42, Math.min(0.45, targetPitch + dy * 0.005));
     };
     const onPointerUp = (e: PointerEvent) => {
       if (!isDragging) return;
@@ -1426,25 +1492,34 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
       subsurfaceLight.color.copy(curSss);
       pMat.color.copy(curColor);
 
-      // Smooth figure-8 massage glide of the authentic LumiaSculpt™ M8807 wand
+      // Smooth figure-8 massage glide of the authentic LumiaSculpt™ M8807 wand FLUSH ON THE SKIN
       const glideX = Math.sin(t * 0.72) * 1.15;
-      const glideZ = Math.sin(t * 1.44) * 0.22;
-      const sonicJitter = mode === 1 ? Math.sin(t * 72) * 0.009 : 0;
+      const glideZ = Math.sin(t * 1.44) * 0.24;
+      const sonicJitter = mode === 1 ? Math.sin(t * 72) * 0.008 : 0;
+
+      // Compute exact epidermis height right underneath the gliding treatment head
+      const domeAtHead =
+        0.065 *
+        Math.cos((glideX / halfW) * (Math.PI * 0.42)) *
+        Math.cos((glideZ / halfD) * (Math.PI * 0.42));
+      const skinSurfaceY = 0.4 + domeAtHead;
 
       wandAnchor.position.x = glideX + sonicJitter;
       wandAnchor.position.z = glideZ;
-      wandAnchor.position.y = 0.57 + Math.sin(t * 1.44) * 0.02;
-      wandRig.rotation.z = -Math.cos(t * 0.72) * 0.07;
+      // Flush direct skin contact (zero floating air gap!)
+      wandAnchor.position.y = skinSurfaceY + 0.004;
+      wandRig.rotation.z = -Math.cos(t * 0.72) * 0.04;
 
       subsurfaceLight.position.set(
         glideX,
         mode === 2 ? 0.18 : mode === 3 ? -0.52 : -0.2,
-        Math.min(halfD - 0.1, glideZ + 0.65)
+        glideZ
       );
-      subsurfaceLight.intensity = (mode === 2 ? 3.8 : 4.8) * pulse;
+      subsurfaceLight.intensity = (mode === 2 ? 4.2 : 5.2) * pulse;
 
       surfacePool.position.x = glideX;
       surfacePool.position.z = glideZ;
+      surfacePool.position.y = skinSurfaceY + 0.008;
       surfacePoolMat.opacity = (mode === 2 ? 0.68 : 0.56) * pulse;
       surfacePool.scale.setScalar(0.96 + 0.08 * pulse);
 
@@ -1457,11 +1532,13 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
       outerBeamMat.opacity = (mode === 2 ? 0.4 : 0.48) * pulse;
       innerBeamMat.opacity = (mode === 2 ? 0.48 : 0.58) * pulse;
 
-      cutawayGlow.position.x = glideX;
-      cutawayGlow.scale.set(radScale * 1.02, currentDepth * 0.94, 1);
+      // Billboard subsurface penetration halo smoothly toward the orbiting 360° camera
+      cutawayGlow.position.set(glideX, skinSurfaceY - 0.02, glideZ);
+      cutawayGlow.rotation.y = Math.atan2(camera.position.x - glideX, camera.position.z - glideZ);
+      cutawayGlow.scale.set(radScale * 1.05, currentDepth * 0.94, 1);
       cutawayGlowMat.opacity = (mode === 2 ? 0.42 : 0.54) * pulse;
 
-      // 1. REAL-TIME EPIDERMIS SMOOTHING & LIFT WAVE
+      // 1. REAL-TIME EPIDERMIS CONTACT CUSHIONING + SMOOTHING & LIFT WAVE
       const posAttr = epiGeo.attributes.position;
       for (let i = 0; i < posAttr.count; i++) {
         const vx = posAttr.getX(i);
@@ -1472,33 +1549,36 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
         const smoothFactor = Math.min(1, influence * (mode === 0 || mode === 3 ? 1.15 : 0.85));
         const remainingWrinkle = epiWrinkleDepth[i] * (1 - smoothFactor);
 
-        const lift =
-          mode === 3
-            ? 0.085 * influence * (0.75 + 0.25 * Math.sin(t * 4.4))
+        // Subtle tactile skin cushion depression directly under the pressing electrode + plumped surrounding ring
+        const contactPress = -0.024 * Math.exp(-dist * dist * 7.5);
+        const outerPlump =
+          (mode === 3
+            ? 0.048 * (0.75 + 0.25 * Math.sin(t * 4.4))
             : mode === 0
-              ? 0.072 * influence
-              : 0.032 * influence;
+              ? 0.042
+              : 0.02) *
+          Math.exp(-Math.pow(dist - 0.55, 2) * 3.2);
 
         const sonicRipple =
-          mode === 1 ? Math.sin(dist * 11 - t * 11) * 0.02 * Math.exp(-dist * 0.72) : 0;
+          mode === 1 ? Math.sin(dist * 11 - t * 11) * 0.018 * Math.exp(-dist * 0.72) : 0;
 
-        posAttr.setY(i, epiBaseY[i] - remainingWrinkle + lift + sonicRipple);
+        posAttr.setY(i, epiBaseY[i] - remainingWrinkle + contactPress + outerPlump + sonicRipple);
       }
       posAttr.needsUpdate = true;
       epiGeo.computeVertexNormals();
 
-      // Keratinocytes
+      // Keratinocytes across all 4 cutaway sides
       const kEmissiveTarget = mode === 2 ? 0.75 * pulse : 0.06;
       kMat.emissive.copy(curColor);
       kMat.emissiveIntensity += (kEmissiveTarget - kMat.emissiveIntensity) * Math.min(1, dt * 4);
       for (let i = 0; i < kCount; i++) {
         const kd = kData[i];
-        const distX = Math.abs(kd.x - glideX);
-        const boost = Math.exp(-distX * distX * 1.4);
+        const dist2d = Math.hypot(kd.x - glideX, kd.z - glideZ);
+        const boost = Math.exp(-dist2d * dist2d * 0.65);
         const breathe = 1 + 0.05 * Math.sin(t * 3 + kd.phase) + boost * (mode === 2 ? 0.14 : 0.05);
-        dummy.position.set(kd.x, kd.y + boost * 0.024, kd.z);
+        dummy.position.set(kd.x, kd.y + boost * 0.018, kd.z);
         dummy.rotation.set(0, 0, 0);
-        dummy.scale.set(kd.sx * breathe, kd.sy * breathe, 0.74);
+        dummy.scale.set(kd.sx * breathe, kd.sy * breathe, kd.sz * breathe);
         dummy.updateMatrix();
         keratinocytes.setMatrixAt(i, dummy.matrix);
       }
@@ -1639,10 +1719,25 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
       }
       pAttr.needsUpdate = true;
 
+      // Smooth automatic 360° turntable camera orbit around the entire 3D skin & LumiaSculpt™ wand
+      if (!isDragging) {
+        autoOrbitAngle += dt * 0.34; // continuous silky 360° orbit
+      }
       userYaw += (targetYaw - userYaw) * Math.min(1, dt * 7);
       userPitch += (targetPitch - userPitch) * Math.min(1, dt * 7);
-      root.rotation.y = -0.2 + Math.sin(t * 0.32) * 0.055 + userYaw;
-      root.rotation.x = 0.04 + userPitch;
+
+      const orbitRadius = 7.75;
+      const orbitTheta = autoOrbitAngle + userYaw;
+      const camY = Math.max(
+        1.25,
+        Math.min(4.1, 2.65 + Math.sin(t * 0.38) * 0.25 + userPitch * 2.2)
+      );
+      camera.position.set(
+        Math.sin(orbitTheta) * orbitRadius,
+        camY,
+        Math.cos(orbitTheta) * orbitRadius
+      );
+      camera.lookAt(0, -0.05, 0);
 
       composer.render();
     };
@@ -1709,7 +1804,7 @@ export function SkinAction3D({ activeMode, onSelectMode }: Props) {
             {cfg.wavelength}
           </span>
           <span className="hidden md:inline-flex items-center gap-1 rounded-full bg-white/65 px-2.5 py-1 text-[10px] font-medium text-[#6B5B50] backdrop-blur-sm">
-            <span>↻</span> Pivoter 3D
+            <span>↻</span> Vue 360° auto
           </span>
         </div>
         <span className="rounded-full bg-[#1E1916]/85 px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] font-medium text-[#FAF5EF] shadow-2xs backdrop-blur-md">

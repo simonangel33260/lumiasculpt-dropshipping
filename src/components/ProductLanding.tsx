@@ -234,6 +234,7 @@ export function ProductLanding({ initialStock }: Props) {
   );
   const [showLifestyleInHero, setShowLifestyleInHero] = useState(false);
   const [activeSynergy, setActiveSynergy] = useState<SynergyModeId>(0);
+  const [sliderPos, setSliderPos] = useState(52);
   const [selectedPackQty, setSelectedPackQty] = useState<PackOption["quantity"]>(2);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -319,36 +320,29 @@ export function ProductLanding({ initialStock }: Props) {
 
   return (
     <div className="relative min-h-screen bg-[#FAF5EF] text-[#1E1916] font-[family-name:var(--font-sans)] pb-24 md:pb-16 overflow-x-clip">
-      {/* Discreet Editorial Facial Profile Line-Art Watermark */}
-      <svg
+      {/* Soft Blended Editorial Face Portraits in Background */}
+      <div
         aria-hidden="true"
-        viewBox="0 0 1440 900"
-        fill="none"
-        className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-[0.16]"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        {/* Minimalist single-line feminine profile (forehead, nose, lips, chin, jawline & neck) on right side */}
-        <path
-          d="M1140 60 C1105 140, 1085 215, 1098 280 C1104 310, 1062 365, 1052 392 C1046 408, 1068 418, 1082 422 C1065 445, 1068 468, 1085 478 C1072 496, 1078 525, 1102 536 C1132 550, 1178 545, 1218 518 C1245 500, 1264 468, 1272 430 M1158 542 C1155 620, 1138 710, 1078 785 C1038 835, 975 865, 910 885"
-          stroke="#C2A085"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-        />
-        {/* Delicate closed eye & brow stroke */}
-        <path
-          d="M1125 322 C1148 310, 1178 314, 1196 326 M1132 354 C1150 364, 1174 362, 1188 352"
-          stroke="#C2A085"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-        />
-        {/* Soft opposing silk contour wave on left */}
-        <path
-          d="M-80 220 C160 150, 310 340, 210 540 C140 680, 40 760, -60 830"
-          stroke="#D4B8A2"
-          strokeWidth="1.1"
-          strokeLinecap="round"
-        />
-      </svg>
+        className="pointer-events-none fixed inset-0 z-0 opacity-[0.26] bg-cover bg-right-top bg-no-repeat"
+        style={{
+          backgroundImage: `url('/images/bg-face-right.jpg')`,
+          maskImage:
+            "radial-gradient(65% 70% at 88% 32%, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.35) 55%, transparent 100%)",
+          WebkitMaskImage:
+            "radial-gradient(65% 70% at 88% 32%, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.35) 55%, transparent 100%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 opacity-[0.22] bg-cover bg-left-bottom bg-no-repeat"
+        style={{
+          backgroundImage: `url('/images/bg-face-left.jpg')`,
+          maskImage:
+            "radial-gradient(62% 68% at 10% 78%, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.3) 55%, transparent 100%)",
+          WebkitMaskImage:
+            "radial-gradient(62% 68% at 10% 78%, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.3) 55%, transparent 100%)",
+        }}
+      />
 
       <div className="relative z-10">
       {/* 1. Top Announcement Bar */}
@@ -842,28 +836,20 @@ export function ProductLanding({ initialStock }: Props) {
         {/* 6. 4 Synergies Institut — Interactive 3D Skin-Layer Simulation + Compact Icon Cards */}
         <section
           id="technologie"
-          className="relative overflow-hidden border-y border-[#E8DDD2] bg-gradient-to-b from-[#F5EAE0]/85 via-[#FCF7F2]/90 to-[#F4E7DC]/85 py-16 sm:py-24 text-[#1E1916]"
+          className="relative overflow-hidden border-y border-[#E8DDD2] bg-[#FAF5EF]/75 py-16 sm:py-24 text-[#1E1916]"
         >
-          {/* Subtle architectural face silhouette watermark inside the section */}
-          <svg
+          {/* Soft blended right facial portrait melting into the section */}
+          <div
             aria-hidden="true"
-            viewBox="0 0 600 600"
-            fill="none"
-            className="pointer-events-none absolute -right-16 top-6 h-[520px] w-[520px] opacity-[0.14]"
-          >
-            <path
-              d="M320 55 C270 130, 250 205, 265 268 C272 296, 224 345, 214 374 C208 390, 232 400, 248 405 C230 428, 234 452, 252 462 C238 482, 245 512, 272 524 C308 540, 360 532, 402 496 M325 530 C320 565, 310 585, 290 600"
-              stroke="#B58E72"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
-            <path
-              d="M292 308 C316 296, 344 300, 364 312 M298 340 C318 350, 342 348, 356 338"
-              stroke="#B58E72"
-              strokeWidth="1.3"
-              strokeLinecap="round"
-            />
-          </svg>
+            className="pointer-events-none absolute inset-0 opacity-[0.28] bg-cover bg-right bg-no-repeat"
+            style={{
+              backgroundImage: `url('/images/bg-face-right.jpg')`,
+              maskImage:
+                "linear-gradient(270deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 45%, transparent 80%)",
+              WebkitMaskImage:
+                "linear-gradient(270deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 45%, transparent 80%)",
+            }}
+          />
 
           <div className="relative mx-auto max-w-6xl px-4">
             <div className="mx-auto max-w-2xl text-center">
@@ -938,30 +924,147 @@ export function ProductLanding({ initialStock }: Props) {
           </div>
         </section>
 
-        {/* 7. Timeline Results */}
-        <section id="resultats" className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-          <div className="max-w-3xl">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#8C6239]">
-              Progression observée
-            </span>
-            <h2 className="mt-2 font-[family-name:var(--font-serif)] text-3xl sm:text-4xl font-bold">
-              Ce que vous observez semaine après semaine
-            </h2>
-          </div>
+        {/* 7. Macro Before / After Skin Comparison + Timeline Results */}
+        <section id="resultats" className="relative overflow-hidden py-16 sm:py-24">
+          {/* Soft blended left facial portrait melting into the results section */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-[0.26] bg-cover bg-left bg-no-repeat"
+            style={{
+              backgroundImage: `url('/images/bg-face-left.jpg')`,
+              maskImage:
+                "linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.22) 45%, transparent 78%)",
+              WebkitMaskImage:
+                "linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.22) 45%, transparent 78%)",
+            }}
+          />
 
-          <div className="mt-8 grid gap-5 md:grid-cols-3">
-            {TIMELINE_RESULTS.map((r) => (
-              <div
-                key={r.phase}
-                className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs"
-              >
-                <span className="inline-block rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-bold text-[#8C6239]">
-                  {r.phase}
-                </span>
-                <h3 className="mt-3 text-lg font-bold">{r.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-stone-600">{r.desc}</p>
+          <div className="relative mx-auto max-w-6xl px-4">
+            <div className="max-w-3xl">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#DFD0C1] bg-white/80 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8C6239]">
+                Résultats Visibles de Très Près
+              </span>
+              <h2 className="mt-3 font-[family-name:var(--font-serif)] text-3xl sm:text-5xl font-bold leading-tight text-[#1E1916]">
+                Avant / Après sur le grain de peau,{" "}
+                <span className="italic text-[#9A5840]">l&apos;ovale et le cou.</span>
+              </h2>
+              <p className="mt-2 text-sm sm:text-base text-[#5C524B]">
+                Faites glisser le curseur pour comparer l&apos;aspect de la peau nue avant et après
+                28 jours de rituel quotidien (5 min/jour).
+              </p>
+            </div>
+
+            {/* Interactive Macro Before / After Comparator */}
+            <div className="mt-10 grid gap-8 lg:grid-cols-12 lg:items-center">
+              <div className="lg:col-span-7">
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-[#E2D3C5] bg-[#EFE4D8] shadow-md select-none">
+                  {/* Base Layer: AFTER (28 jours) */}
+                  <img
+                    src="/images/skin-after.jpg"
+                    alt="Peau nue de très près après 28 jours avec LumiaSculpt"
+                    width={1024}
+                    height={768}
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+
+                  {/* Clipped Top Layer: BEFORE (Jour 1) */}
+                  <div
+                    className="absolute inset-0 overflow-hidden"
+                    style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
+                  >
+                    <img
+                      src="/images/skin-before.jpg"
+                      alt="Peau nue de très près avant utilisation (Jour 1)"
+                      width={1024}
+                      height={768}
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+
+                  {/* Labels */}
+                  <span className="pointer-events-none absolute top-4 left-4 rounded-full bg-[#1E1916]/75 px-3.5 py-1 text-[11px] font-semibold text-[#FAF5EF] backdrop-blur-md">
+                    Avant • Jour 1
+                  </span>
+                  <span className="pointer-events-none absolute top-4 right-4 rounded-full bg-white/90 px-3.5 py-1 text-[11px] font-semibold text-[#1E1916] shadow-xs backdrop-blur-md">
+                    Après • 28 jours
+                  </span>
+
+                  {/* Vertical Divider & Draggable Handle */}
+                  <div
+                    className="pointer-events-none absolute inset-y-0 z-10 w-0.5 bg-white/95 shadow-[0_0_12px_rgba(0,0,0,0.35)]"
+                    style={{ left: `${sliderPos}%` }}
+                  >
+                    <div className="absolute top-1/2 left-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-[#1E1916]/85 text-sm font-bold text-white shadow-lg backdrop-blur-md">
+                      ↔
+                    </div>
+                  </div>
+
+                  {/* Native accessible range overlay for smooth mouse & mobile finger dragging */}
+                  <input
+                    type="range"
+                    min={5}
+                    max={95}
+                    value={sliderPos}
+                    onChange={(e) => setSliderPos(Number(e.target.value))}
+                    aria-label="Comparer la peau avant et après 28 jours"
+                    className="absolute inset-0 z-20 h-full w-full cursor-ew-resize opacity-0"
+                  />
+                </div>
+                <p className="mt-2.5 text-center text-[11px] text-[#7A6B60]">
+                  ↔ Glissez de gauche à droite • Peau nue sans crème ni sérum — aperçu visuel à 28
+                  jours
+                </p>
               </div>
-            ))}
+
+              {/* Clinical Close-Up Observations */}
+              <div className="lg:col-span-5 space-y-4">
+                {[
+                  {
+                    metric: "Pores & grain de peau",
+                    detail:
+                      "L'association lumière bleue 465 nm + chaleur douce resserre visiblement l'apparence des pores sur les joues.",
+                  },
+                  {
+                    metric: "Plis horizontaux du cou",
+                    detail:
+                      "La photobiomodulation rouge 630 nm lisse les stries du cou et redonne de la souplesse au derme.",
+                  },
+                  {
+                    metric: "Ovale & fermeté",
+                    detail:
+                      "Les micro-courants EMS réveillent le tonus musculaire le long de la mâchoire pour des contours plus nets.",
+                  },
+                ].map((obs) => (
+                  <div
+                    key={obs.metric}
+                    className="rounded-2xl border border-[#E6D8CA] bg-white/85 p-5 shadow-2xs backdrop-blur-sm"
+                  >
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#9A5840]">
+                      ✦ {obs.metric}
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-[#574D46]">{obs.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Week-by-week timeline */}
+            <div className="mt-10 grid gap-5 md:grid-cols-3">
+              {TIMELINE_RESULTS.map((r) => (
+                <div
+                  key={r.phase}
+                  className="rounded-2xl border border-[#E6D8CA] bg-white/85 p-6 shadow-xs backdrop-blur-sm"
+                >
+                  <span className="inline-block rounded-full bg-[#FBF0E4] border border-[#E6D0B8] px-3 py-1 text-xs font-bold text-[#8C6239]">
+                    {r.phase}
+                  </span>
+                  <h3 className="mt-3 text-lg font-bold text-[#1E1916]">{r.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[#5C524B]">{r.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 

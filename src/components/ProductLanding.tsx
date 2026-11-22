@@ -412,7 +412,7 @@ export function ProductLanding({ initialStock }: Props) {
           <div className="grid gap-10 lg:grid-cols-12 lg:items-start">
             {/* Left Column: High-Resolution Studio & Lifestyle Gallery */}
             <div className="lg:col-span-6 lg:sticky lg:top-24 space-y-3">
-              <div className="relative overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-md">
+              <div className="relative overflow-hidden rounded-2xl bg-white shadow-[0_22px_50px_-24px_rgba(62,42,28,0.22)]">
                 <img
                   src={activeHeroImage}
                   alt={`Sculpteur LumiaSculpt™ EMS & LED — ${selectedVariant?.name ?? ""}`}
@@ -421,7 +421,7 @@ export function ProductLanding({ initialStock }: Props) {
                   className="aspect-square w-full object-cover"
                 />
                 <div className="pointer-events-none absolute top-4 left-4 flex flex-wrap gap-2">
-                  <span className="rounded-full bg-[#111114]/85 backdrop-blur-xs px-3.5 py-1 text-[11px] font-semibold tracking-wide text-[#FAF7F2]">
+                  <span className="rounded-full bg-[#111114]/80 backdrop-blur-md px-3.5 py-1 text-[11px] font-medium tracking-wide text-[#FAF7F2]">
                     EMS + LED 630nm + Chaleur 45°C
                   </span>
                 </div>
@@ -481,17 +481,13 @@ export function ProductLanding({ initialStock }: Props) {
                 </button>
               </div>
 
-              {/* Trust Badges */}
-              <div className="grid grid-cols-3 gap-2 pt-1 text-center text-[11px] font-medium text-stone-700">
-                <div className="rounded-xl border border-stone-200 bg-white px-2.5 py-2">
-                  Normes CE &amp; RoHS
-                </div>
-                <div className="rounded-xl border border-stone-200 bg-white px-2.5 py-2">
-                  Sans fil • USB-C
-                </div>
-                <div className="rounded-xl border border-stone-200 bg-white px-2.5 py-2">
-                  Garantie 2 ans incluse
-                </div>
+              {/* Minimal Editorial Trust Strip (no heavy boxes) */}
+              <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 border-t border-[#E4D6C8]/80 pt-3.5 text-[11px] font-medium text-[#6B5B50]">
+                <span>Normes CE &amp; RoHS</span>
+                <span className="text-[#D2C0AE]">·</span>
+                <span>Sans fil USB-C</span>
+                <span className="text-[#D2C0AE]">·</span>
+                <span>Garantie 2 ans incluse</span>
               </div>
             </div>
 
@@ -550,7 +546,7 @@ export function ProductLanding({ initialStock }: Props) {
               {/* Buy Box Form */}
               <form
                 onSubmit={handleCheckout}
-                className="space-y-5 rounded-3xl border border-stone-200 bg-white p-5 sm:p-6 shadow-sm"
+                className="space-y-5 rounded-3xl border border-[#E6D9CC]/80 bg-white/75 p-5 sm:p-6 backdrop-blur-md"
               >
                 {/* 1. Finish / Color Selector */}
                 <div>
@@ -757,24 +753,24 @@ export function ProductLanding({ initialStock }: Props) {
           </div>
         </section>
 
-        {/* 4. Clinical Metrics Strip */}
-        <section className="border-y border-stone-200 bg-white py-8">
-          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-4 md:grid-cols-4">
+        {/* 4. Clinical Metrics Strip (open editorial hairlines, no heavy white box) */}
+        <section className="mx-auto max-w-6xl px-4">
+          <div className="grid grid-cols-2 gap-6 border-y border-[#E4D6C8]/80 py-9 md:grid-cols-4 md:divide-x md:divide-[#E4D6C8]/70">
             {CLINICAL_METRICS.map((m) => (
-              <div key={m.value} className="text-center md:text-left">
-                <p className="font-[family-name:var(--font-serif)] text-3xl sm:text-4xl font-bold text-[#8C6239]">
+              <div key={m.value} className="text-center md:px-6 md:first:pl-0 md:text-left">
+                <p className="font-[family-name:var(--font-serif)] text-3xl sm:text-4xl font-bold text-[#9A5840]">
                   {m.value}
                 </p>
-                <p className="mt-1 text-xs sm:text-sm text-stone-600">{m.label}</p>
+                <p className="mt-1.5 text-xs sm:text-sm text-[#5C524B]">{m.label}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* 5. Full-Bleed Lifestyle Ritual Section */}
-        <section id="rituel" className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-          <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
-            <div className="lg:col-span-6 overflow-hidden rounded-3xl border border-stone-200 bg-black shadow-sm">
+        {/* 5. Lifestyle Ritual Section (editorial hairline steps) */}
+        <section id="rituel" className="mx-auto max-w-6xl px-4 py-16 sm:py-24">
+          <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
+            <div className="lg:col-span-6 overflow-hidden rounded-2xl bg-black shadow-[0_24px_60px_-24px_rgba(48,32,22,0.28)]">
               <video
                 src="/videos/product-demo.mp4"
                 poster="/images/lifestyle-usage.jpg"
@@ -789,15 +785,15 @@ export function ProductLanding({ initialStock }: Props) {
 
             <div className="lg:col-span-6 space-y-6">
               <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-[#8C6239]">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9A5840]">
                   Un geste simple, des résultats visibles
                 </span>
-                <h2 className="mt-2 font-[family-name:var(--font-serif)] text-3xl sm:text-4xl font-bold leading-tight">
+                <h2 className="mt-2 font-[family-name:var(--font-serif)] text-3xl sm:text-4xl font-bold leading-tight text-[#1E1916]">
                   Votre soin institut en 3 gestes de 5 minutes chez vous
                 </h2>
               </div>
 
-              <div className="space-y-4">
+              <div className="divide-y divide-[#E4D6C8]/80 border-t border-[#E4D6C8]/80">
                 {[
                   {
                     step: "01",
@@ -815,16 +811,17 @@ export function ProductLanding({ initialStock }: Props) {
                     desc: "La tête annulaire chauffante glisse en douceur sur la mâchoire, le cou et les pommettes pour un effet lift immédiat.",
                   },
                 ].map((item) => (
-                  <div
-                    key={item.step}
-                    className="flex gap-4 rounded-2xl border border-stone-200 bg-white p-4"
-                  >
-                    <span className="font-mono text-sm font-bold text-[#8C6239]">
+                  <div key={item.step} className="flex gap-5 py-4 sm:py-5">
+                    <span className="font-[family-name:var(--font-serif)] text-lg italic font-semibold text-[#9A5840]">
                       {item.step}
                     </span>
                     <div>
-                      <h3 className="text-sm sm:text-base font-bold">{item.title}</h3>
-                      <p className="mt-1 text-xs sm:text-sm text-stone-600">{item.desc}</p>
+                      <h3 className="text-sm sm:text-base font-semibold text-[#1E1916]">
+                        {item.title}
+                      </h3>
+                      <p className="mt-1 text-xs sm:text-sm leading-relaxed text-[#5C524B]">
+                        {item.desc}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -833,10 +830,10 @@ export function ProductLanding({ initialStock }: Props) {
           </div>
         </section>
 
-        {/* 6. 4 Synergies Institut — Interactive 3D Skin-Layer Simulation + Compact Icon Cards */}
+        {/* 6. 4 Synergies Institut — Frameless Floating 3D Relief + Editorial Interactive List */}
         <section
           id="technologie"
-          className="relative overflow-x-clip border-y border-[#E8DDD2] bg-[#FAF5EF]/75 py-16 sm:py-24 text-[#1E1916]"
+          className="relative overflow-x-clip py-16 sm:py-24 text-[#1E1916]"
         >
           {/* Soft blended right facial portrait melting into the section */}
           <div
@@ -853,27 +850,27 @@ export function ProductLanding({ initialStock }: Props) {
 
           <div className="relative mx-auto max-w-6xl px-4">
             <div className="mx-auto max-w-2xl text-center">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#DFD0C1] bg-white/85 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8C6239]">
-                Action Profonde • Simulation 3D sur la Peau
+              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9A5840]">
+                Action Profonde · Simulation 3D sur la Peau
               </span>
-              <h2 className="mt-4 font-[family-name:var(--font-serif)] text-3xl sm:text-5xl font-bold leading-[1.08] tracking-tight text-[#1E1916]">
+              <h2 className="mt-3 font-[family-name:var(--font-serif)] text-3xl sm:text-5xl font-bold leading-[1.08] tracking-tight text-[#1E1916]">
                 Comment LumiaSculpt™ agit{" "}
                 <span className="italic text-[#9A5840]">sous la surface de la peau.</span>
               </h2>
               <p className="mt-3 text-sm sm:text-base leading-relaxed text-[#5C524B]">
-                Cliquez sur l&apos;un des 4 modes pour observer en 3D la profondeur d&apos;action de
+                Sélectionnez l&apos;un des 4 modes pour observer en 3D la profondeur d&apos;action de
                 la lumière LED, des vibrations soniques et des micro-courants EMS.
               </p>
             </div>
 
-            <div className="mt-10 sm:mt-12 grid gap-6 lg:gap-8 lg:grid-cols-12 lg:items-center">
-              {/* Interactive 3D Biological Skin Cutaway — stays sticky on mobile while switching cards */}
+            <div className="mt-10 sm:mt-14 grid gap-8 lg:gap-12 lg:grid-cols-12 lg:items-center">
+              {/* Frameless Floating 3D Biological Skin Cutaway — stays sticky on mobile while switching modes */}
               <div className="sticky top-[62px] z-20 lg:static lg:col-span-7">
                 <SkinAction3D activeMode={activeSynergy} onSelectMode={setActiveSynergy} />
               </div>
 
-              {/* 4 Compact Clickable Synergy Cards with Small Minimalist Icons */}
-              <div className="lg:col-span-5 space-y-3">
+              {/* 4 Airy Borderless Editorial Interactive Rows (no heavy boxes!) */}
+              <div className="lg:col-span-5 divide-y divide-[#E4D6C8]/80 border-y border-[#E4D6C8]/80">
                 {LED_MODES.map((mode) => {
                   const isActive = activeSynergy === mode.id;
                   return (
@@ -881,29 +878,29 @@ export function ProductLanding({ initialStock }: Props) {
                       key={mode.code}
                       type="button"
                       onClick={() => setActiveSynergy(mode.id)}
-                      className={`w-full text-left flex items-start gap-4 rounded-2xl border p-4 sm:p-5 transition ${
+                      className={`w-full text-left flex items-start gap-4 py-4 sm:py-5 pl-3 pr-2 transition-all border-l-2 ${
                         isActive
-                          ? "border-[#9A5840] bg-white shadow-md ring-1 ring-[#9A5840]/20"
-                          : "border-[#E6D8CA] bg-white/75 hover:bg-white hover:border-[#D4C0AD]"
+                          ? "border-l-[#9A5840] bg-white/45"
+                          : "border-l-transparent hover:border-l-[#D6C2AF] hover:bg-white/25"
                       }`}
                     >
                       <div
-                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border bg-gradient-to-br ${mode.orbBg} ${mode.orbRing} ${mode.orbText}`}
+                        className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${mode.orbBg} ${mode.orbText} transition-transform ${
+                          isActive ? "scale-105" : "opacity-80"
+                        }`}
                       >
                         <SynergyIcon id={mode.id} />
                       </div>
 
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#7D6A5C]">
+                          <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7D6A5C]">
                             <span className={`h-1.5 w-1.5 rounded-full ${mode.dot}`} />
                             {mode.eyebrow}
                           </span>
                           <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                              isActive
-                                ? "bg-[#1E1916] text-[#FAF5EF]"
-                                : "bg-[#F5ECE4] text-[#6B5B4F]"
+                            className={`text-[11px] font-semibold tracking-wide ${
+                              isActive ? "text-[#9A5840]" : "text-[#8C7B6E]"
                             }`}
                           >
                             {mode.code}
@@ -924,7 +921,7 @@ export function ProductLanding({ initialStock }: Props) {
           </div>
         </section>
 
-        {/* 7. Macro Before / After Skin Comparison + Timeline Results */}
+        {/* 7. Macro Before / After Skin Comparison + Open Editorial Timeline */}
         <section id="resultats" className="relative overflow-hidden py-16 sm:py-24">
           {/* Soft blended left facial portrait melting into the results section */}
           <div
@@ -941,10 +938,10 @@ export function ProductLanding({ initialStock }: Props) {
 
           <div className="relative mx-auto max-w-6xl px-4">
             <div className="max-w-3xl">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#DFD0C1] bg-white/80 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8C6239]">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9A5840]">
                 Résultats Visibles de Très Près
               </span>
-              <h2 className="mt-3 font-[family-name:var(--font-serif)] text-3xl sm:text-5xl font-bold leading-tight text-[#1E1916]">
+              <h2 className="mt-2.5 font-[family-name:var(--font-serif)] text-3xl sm:text-5xl font-bold leading-tight text-[#1E1916]">
                 Avant / Après sur le grain de peau,{" "}
                 <span className="italic text-[#9A5840]">l&apos;ovale et le cou.</span>
               </h2>
@@ -955,9 +952,9 @@ export function ProductLanding({ initialStock }: Props) {
             </div>
 
             {/* Interactive Macro Before / After Comparator */}
-            <div className="mt-10 grid gap-8 lg:grid-cols-12 lg:items-center">
+            <div className="mt-10 grid gap-10 lg:grid-cols-12 lg:items-center">
               <div className="lg:col-span-7">
-                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-[#E2D3C5] bg-[#EFE4D8] shadow-md select-none">
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-[#EFE4D8] shadow-[0_24px_60px_-24px_rgba(48,32,22,0.28)] select-none">
                   {/* Base Layer: AFTER (28 jours) */}
                   <img
                     src="/images/skin-after.jpg"
@@ -1012,14 +1009,14 @@ export function ProductLanding({ initialStock }: Props) {
                     className="absolute inset-0 z-20 h-full w-full cursor-ew-resize opacity-0"
                   />
                 </div>
-                <p className="mt-2.5 text-center text-[11px] text-[#7A6B60]">
+                <p className="mt-3 text-center text-[11px] text-[#7A6B60]">
                   ↔ Glissez de gauche à droite • Peau nue sans crème ni sérum — aperçu visuel à 28
                   jours
                 </p>
               </div>
 
-              {/* Clinical Close-Up Observations */}
-              <div className="lg:col-span-5 space-y-4">
+              {/* Open Editorial Close-Up Observations (hairlines instead of boxes) */}
+              <div className="lg:col-span-5 divide-y divide-[#E4D6C8]/80 border-y border-[#E4D6C8]/80">
                 {[
                   {
                     metric: "Pores & grain de peau",
@@ -1037,11 +1034,8 @@ export function ProductLanding({ initialStock }: Props) {
                       "Les micro-courants EMS réveillent le tonus musculaire le long de la mâchoire pour des contours plus nets.",
                   },
                 ].map((obs) => (
-                  <div
-                    key={obs.metric}
-                    className="rounded-2xl border border-[#E6D8CA] bg-white/85 p-5 shadow-2xs backdrop-blur-sm"
-                  >
-                    <p className="text-xs font-bold uppercase tracking-wider text-[#9A5840]">
+                  <div key={obs.metric} className="py-5">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#9A5840]">
                       ✦ {obs.metric}
                     </p>
                     <p className="mt-1.5 text-sm leading-relaxed text-[#574D46]">{obs.detail}</p>
@@ -1050,17 +1044,16 @@ export function ProductLanding({ initialStock }: Props) {
               </div>
             </div>
 
-            {/* Week-by-week timeline */}
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {/* Open Week-by-week timeline (top rules instead of boxed cards) */}
+            <div className="mt-14 grid gap-8 md:grid-cols-3">
               {TIMELINE_RESULTS.map((r) => (
-                <div
-                  key={r.phase}
-                  className="rounded-2xl border border-[#E6D8CA] bg-white/85 p-6 shadow-xs backdrop-blur-sm"
-                >
-                  <span className="inline-block rounded-full bg-[#FBF0E4] border border-[#E6D0B8] px-3 py-1 text-xs font-bold text-[#8C6239]">
+                <div key={r.phase} className="border-t border-[#DECFC0] pt-5">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#9A5840]">
                     {r.phase}
                   </span>
-                  <h3 className="mt-3 text-lg font-bold text-[#1E1916]">{r.title}</h3>
+                  <h3 className="mt-2 font-[family-name:var(--font-serif)] text-xl font-bold text-[#1E1916]">
+                    {r.title}
+                  </h3>
                   <p className="mt-2 text-sm leading-relaxed text-[#5C524B]">{r.desc}</p>
                 </div>
               ))}
@@ -1068,115 +1061,114 @@ export function ProductLanding({ initialStock }: Props) {
           </div>
         </section>
 
-        {/* 8. Comparison Table */}
-        <section className="bg-white border-y border-stone-200 py-14 sm:py-20">
-          <div className="mx-auto max-w-6xl px-4">
-            <div className="text-center max-w-2xl mx-auto">
-              <h2 className="font-[family-name:var(--font-serif)] text-3xl sm:text-4xl font-bold">
-                Pourquoi payer 120 € par séance en institut ?
-              </h2>
-              <p className="mt-2 text-sm text-stone-600">
-                LumiaSculpt™ réunit l&apos;action musculaire de l&apos;EMS et la photobiomodulation
-                LED pour le prix d&apos;une seule crème visage.
-              </p>
-            </div>
+        {/* 8. Open Editorial Comparison Table */}
+        <section className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
+          <div className="text-center max-w-2xl mx-auto">
+            <h2 className="font-[family-name:var(--font-serif)] text-3xl sm:text-4xl font-bold text-[#1E1916]">
+              Pourquoi payer 120 € par séance en institut ?
+            </h2>
+            <p className="mt-2 text-sm text-[#5C524B]">
+              LumiaSculpt™ réunit l&apos;action musculaire de l&apos;EMS et la photobiomodulation
+              LED pour le prix d&apos;une seule crème visage.
+            </p>
+          </div>
 
-            <div className="mt-8 overflow-x-auto rounded-2xl border border-stone-200">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-stone-50 border-b border-stone-200 text-xs uppercase text-stone-600">
-                  <tr>
-                    <th className="p-4">Critère</th>
-                    <th className="p-4 bg-[#111114] text-[#E5C896]">LumiaSculpt™ 7-en-1</th>
-                    <th className="p-4">Soin Institut</th>
-                    <th className="p-4">Gua Sha Classique</th>
+          <div className="mt-10 overflow-x-auto border-y border-[#E4D6C8]">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-[#E4D6C8] text-[11px] uppercase tracking-wider text-[#7A6B60]">
+                <tr>
+                  <th className="py-4 pr-4 font-semibold">Critère</th>
+                  <th className="px-5 py-4 bg-[#1E1916] text-[#F2D9B3] font-semibold">
+                    LumiaSculpt™ 7-en-1
+                  </th>
+                  <th className="px-4 py-4 font-semibold">Soin Institut</th>
+                  <th className="px-4 py-4 font-semibold">Gua Sha Classique</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E4D6C8]/75">
+                {COMPARISON_ROWS.map((row) => (
+                  <tr key={row.criteria}>
+                    <td className="py-4 pr-4 font-medium text-[#1E1916]">{row.criteria}</td>
+                    <td className="px-5 py-4 bg-white/55 font-semibold text-[#1E1916]">
+                      ✓ {row.lumia}
+                    </td>
+                    <td className="px-4 py-4 text-[#6E5E53]">{row.institut}</td>
+                    <td className="px-4 py-4 text-[#8C7B6E]">✕ {row.guasha}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-200 bg-white">
-                  {COMPARISON_ROWS.map((row) => (
-                    <tr key={row.criteria}>
-                      <td className="p-4 font-semibold">{row.criteria}</td>
-                      <td className="p-4 bg-amber-50/40 font-semibold text-[#111114]">
-                        ✓ {row.lumia}
-                      </td>
-                      <td className="p-4 text-stone-500">{row.institut}</td>
-                      <td className="p-4 text-stone-500">✕ {row.guasha}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
 
-        {/* 9. Verified Reviews */}
+        {/* 9. Verified Reviews (open editorial quotes with fine top rules) */}
         <section id="avis" className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <span className="text-xs font-bold uppercase tracking-widest text-[#8C6239]">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9A5840]">
                 Avis clients vérifiés
               </span>
-              <h2 className="mt-2 font-[family-name:var(--font-serif)] text-3xl sm:text-4xl font-bold">
+              <h2 className="mt-2 font-[family-name:var(--font-serif)] text-3xl sm:text-4xl font-bold text-[#1E1916]">
                 4,9 / 5 sur 2 840 utilisatrices en France
               </h2>
             </div>
             <a
               href="#commander"
-              className="inline-flex items-center justify-center rounded-full bg-[#111114] px-5 py-2.5 text-xs font-semibold text-white hover:bg-stone-800 transition"
+              className="inline-flex items-center justify-center rounded-full bg-[#1E1916] px-5 py-2.5 text-xs font-semibold text-[#FAF5EF] hover:bg-[#352C27] transition"
             >
               Profiter de l&apos;offre (-59 %) →
             </a>
           </div>
 
-          <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
             {REVIEWS.map((review) => (
               <article
                 key={review.name}
-                className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-6 shadow-xs"
+                className="flex flex-col justify-between border-t border-[#E0D1C2] pt-5"
               >
                 <div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-amber-500 font-bold">★★★★★</span>
-                    <span className="text-stone-400">Achat vérifié</span>
+                    <span className="text-[#B87D3B] tracking-wider">★★★★★</span>
+                    <span className="text-[11px] text-[#8C7B6E]">Achat vérifié</span>
                   </div>
-                  <h3 className="mt-2.5 font-bold">{review.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                  <h3 className="mt-3 font-[family-name:var(--font-serif)] text-lg font-bold text-[#1E1916]">
+                    {review.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[#574D46]">
                     « {review.quote} »
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-stone-100">
-                  <p className="text-xs font-semibold">{review.name}</p>
-                  <p className="text-[11px] text-stone-500">{review.profile}</p>
+                <div className="mt-4 pt-3">
+                  <p className="text-xs font-semibold text-[#1E1916]">{review.name}</p>
+                  <p className="text-[11px] text-[#8C7B6E]">{review.profile}</p>
                 </div>
               </article>
             ))}
           </div>
         </section>
 
-        {/* 10. FAQ */}
-        <section id="faq" className="mx-auto max-w-4xl px-4 pb-16">
-          <h2 className="font-[family-name:var(--font-serif)] text-3xl sm:text-4xl font-bold text-center">
+        {/* 10. Editorial Hairline FAQ Accordion */}
+        <section id="faq" className="mx-auto max-w-4xl px-4 pb-20 pt-6">
+          <h2 className="font-[family-name:var(--font-serif)] text-3xl sm:text-4xl font-bold text-center text-[#1E1916]">
             Questions fréquentes
           </h2>
-          <div className="mt-8 space-y-3">
+          <div className="mt-10 divide-y divide-[#E4D6C8] border-y border-[#E4D6C8]">
             {FAQS.map((item) => (
-              <details
-                key={item.q}
-                className="group rounded-2xl border border-stone-200 bg-white p-5"
-              >
-                <summary className="flex cursor-pointer items-center justify-between text-sm sm:text-base font-semibold list-none">
+              <details key={item.q} className="group py-5">
+                <summary className="flex cursor-pointer items-center justify-between text-sm sm:text-base font-semibold text-[#1E1916] list-none">
                   <span>{item.q}</span>
-                  <span className="ml-4 text-lg text-stone-400 group-open:rotate-45 transition-transform">
+                  <span className="ml-4 text-lg font-light text-[#9A5840] group-open:rotate-45 transition-transform">
                     +
                   </span>
                 </summary>
-                <p className="mt-3 text-sm leading-relaxed text-stone-600">{item.a}</p>
+                <p className="mt-3 pr-8 text-sm leading-relaxed text-[#5C524B]">{item.a}</p>
               </details>
             ))}
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-stone-200 bg-white py-8 text-center text-xs text-stone-500">
+      <footer className="border-t border-[#E4D6C8] py-8 text-center text-xs text-[#7A6B60]">
         <div className="mx-auto max-w-6xl px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p>© {new Date().getFullYear()} LumiaSculpt™ Paris. Tous droits réservés.</p>
           <div className="flex items-center gap-4">

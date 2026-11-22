@@ -24,35 +24,47 @@ const CLINICAL_METRICS = [
 const LED_MODES = [
   {
     code: "630 nm",
-    badge: "MODE ROUGE • COLLAGÈNE",
-    accent: "bg-rose-500/20 text-rose-300 border-rose-500/40",
-    dot: "bg-rose-500",
+    eyebrow: "Photobiomodulation Rouge",
+    orbBg: "from-[#FBE4E7] to-[#F5C6CE]",
+    orbRing: "border-[#EAB0BA]",
+    orbText: "text-[#A63446]",
+    dot: "bg-[#C83E52]",
+    benefit: "Stimulation du collagène & ovale raffermi",
     title: "Fermeté & Anti-Relâchement",
-    desc: "Pénètre le derme pour stimuler l'élasticité naturelle, lisser les rides horizontales du cou (« tech neck ») et redessiner l'ovale.",
+    desc: "Pénètre délicatement le derme pour relancer l'élasticité naturelle, lisser les plis horizontaux du cou et redessiner la ligne mandibulaire.",
   },
   {
     code: "520 nm",
-    badge: "MODE VERT • DRAINAGE",
-    accent: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
-    dot: "bg-emerald-400",
-    title: "Drainage & Coup d'Éclat",
-    desc: "Associé aux vibrations soniques à 7 000 tr/min, il décongestionne le bas du visage le matin et ravive le teint terne.",
+    eyebrow: "Lumière Verte & Sonique",
+    orbBg: "from-[#E3F3EB] to-[#C6E6D6]",
+    orbRing: "border-[#A7D7C0]",
+    orbText: "text-[#1E7552]",
+    dot: "bg-[#229466]",
+    benefit: "Drainage lymphatique & coup d'éclat matinal",
+    title: "Drainage & Teint Lumineux",
+    desc: "Associée aux micro-vibrations à 7 000 tr/min, elle décongestionne les traits au réveil, atténue les signes de fatigue et ravive l'éclat.",
   },
   {
     code: "465 nm",
-    badge: "MODE BLEU • PURETÉ",
-    accent: "bg-sky-500/20 text-sky-300 border-sky-500/40",
-    dot: "bg-sky-400",
-    title: "Grain de Peau & Pores",
-    desc: "Assainit la surface cutanée, calme les rougeurs diffuses et aide à resserrer visiblement les pores dilatés.",
+    eyebrow: "Spectre Bleu Apaisant",
+    orbBg: "from-[#E4F0FB] to-[#C8E0F7]",
+    orbRing: "border-[#AACDF0]",
+    orbText: "text-[#2563A6]",
+    dot: "bg-[#3178C6]",
+    benefit: "Grain de peau affiné & pores resserrés",
+    title: "Pureté & Peau Apaisée",
+    desc: "Purifie la surface cutanée en douceur, calme les rougeurs diffuses et aide à lisser visiblement les irrégularités du grain de peau.",
   },
   {
-    code: "EMS + 45 °C",
-    badge: "MICRO-COURANTS • THERMIE",
-    accent: "bg-amber-500/20 text-amber-200 border-amber-400/40",
-    dot: "bg-amber-400",
-    title: "Tonification Musculaire & Absorption",
-    desc: "De légères impulsions EMS réveillent le tonus du cou et de la mâchoire tandis que la tête chauffée ouvre les pores pour vos soins.",
+    code: "45 °C",
+    eyebrow: "Micro-Courants EMS & Thermie",
+    orbBg: "from-[#FBF0E1] to-[#F3DAC0]",
+    orbRing: "border-[#E3BF99]",
+    orbText: "text-[#9A5840]",
+    dot: "bg-[#C46A34]",
+    benefit: "Tonification douce & absorption des sérums ×2",
+    title: "Effet Lift & Infusion de Soin",
+    desc: "La chaleur constante à 45 °C ouvre les pores pour décupler vos sérums tandis que de fines impulsions EMS réveillent le tonus du visage et du cou.",
   },
 ];
 
@@ -754,38 +766,77 @@ export function ProductLanding({ initialStock }: Props) {
           </div>
         </section>
 
-        {/* 6. 3-Spectrum LED + EMS Dark Tech Showcase */}
-        <section id="technologie" className="bg-[#111114] py-14 sm:py-20 text-white">
-          <div className="mx-auto max-w-6xl px-4">
-            <div className="max-w-2xl">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#E5C896]">
-                Ingénierie Lumière &amp; Micro-Courants
+        {/* 6. 4 Synergies Institut — Luminous Editorial Showcase */}
+        <section
+          id="technologie"
+          className="relative overflow-hidden border-y border-[#E8DDD2] bg-gradient-to-b from-[#F5ECE3] via-[#FBF7F2] to-[#F5ECE3] py-16 sm:py-24 text-[#1E1916]"
+        >
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(50% 45% at 50% 0%, rgba(255, 255, 255, 0.85) 0%, transparent 70%)",
+            }}
+          />
+
+          <div className="relative mx-auto max-w-6xl px-4">
+            <div className="mx-auto max-w-2xl text-center">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#DFD0C1] bg-white/80 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8C6239]">
+                Savoir-Faire Institut • Lumière &amp; Micro-Courants
               </span>
-              <h2 className="mt-2 font-[family-name:var(--font-serif)] text-3xl sm:text-4xl font-bold">
-                4 synergies cliniques dans un seul bijou ergonomique
+              <h2 className="mt-4 font-[family-name:var(--font-serif)] text-3xl sm:text-5xl font-bold leading-[1.08] tracking-tight text-[#1E1916]">
+                4 synergies de soin cabine,{" "}
+                <span className="italic text-[#9A5840]">réunies en un seul geste.</span>
               </h2>
+              <p className="mt-3 text-sm sm:text-base leading-relaxed text-[#5C524B]">
+                Chaque mode associe une longueur d&apos;onde LED ciblée à la douceur thermique pour
+                s&apos;adapter aux besoins de votre peau, matin et soir.
+              </p>
             </div>
 
-            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {LED_MODES.map((mode) => (
-                <div
+            <div className="mt-12 grid gap-6 md:grid-cols-2">
+              {LED_MODES.map((mode, idx) => (
+                <article
                   key={mode.code}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-6 flex flex-col justify-between"
+                  className="group relative flex flex-col justify-between rounded-3xl border border-[#E7DACD] bg-white/90 p-7 sm:p-8 shadow-xs backdrop-blur-sm transition hover:border-[#D6C2AF] hover:shadow-md"
                 >
                   <div>
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wider ${mode.accent}`}
-                    >
-                      <span className={`h-1.5 w-1.5 rounded-full ${mode.dot}`} />
-                      {mode.badge}
-                    </span>
-                    <h3 className="mt-4 text-lg font-bold">{mode.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-stone-300">{mode.desc}</p>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border bg-gradient-to-br shadow-inner ${mode.orbBg} ${mode.orbRing}`}
+                        >
+                          <span className={`text-xs font-bold tracking-tight ${mode.orbText}`}>
+                            {mode.code}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#7D6A5C]">
+                            <span className={`h-1.5 w-1.5 rounded-full ${mode.dot}`} />
+                            {mode.eyebrow}
+                          </p>
+                          <h3 className="mt-0.5 font-[family-name:var(--font-serif)] text-2xl font-bold text-[#1E1916]">
+                            {mode.title}
+                          </h3>
+                        </div>
+                      </div>
+                      <span className="font-[family-name:var(--font-serif)] text-2xl italic text-[#D4C3B4]">
+                        0{idx + 1}
+                      </span>
+                    </div>
+
+                    <p className="mt-4 text-sm sm:text-[15px] leading-relaxed text-[#574D46]">
+                      {mode.desc}
+                    </p>
                   </div>
-                  <p className="mt-5 pt-3 border-t border-white/10 font-mono text-xs text-stone-400">
-                    Spectre / Puissance : {mode.code}
-                  </p>
-                </div>
+
+                  <div className="mt-6 flex items-center justify-between border-t border-[#F0E6DC] pt-4 text-xs">
+                    <span className="font-medium text-[#7D5A44]">{mode.benefit}</span>
+                    <span className="rounded-full bg-[#FAF6F1] border border-[#E8DDD2] px-2.5 py-0.5 font-semibold text-[#5C524B]">
+                      {mode.code}
+                    </span>
+                  </div>
+                </article>
               ))}
             </div>
           </div>

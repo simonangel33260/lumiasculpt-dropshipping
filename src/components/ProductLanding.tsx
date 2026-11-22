@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BeforeAfterComparator } from "./BeforeAfterComparator";
 import { ProductHeroVideo } from "./ProductHeroVideo";
 import { SkinAction3D, type SynergyModeId } from "./SkinAction3D";
 import { useState } from "react";
@@ -236,7 +237,6 @@ export function ProductLanding({ initialStock }: Props) {
   const [showLifestyleInHero, setShowLifestyleInHero] = useState(false);
   const [ritualVideo, setRitualVideo] = useState<"soiree" | "demo">("demo");
   const [activeSynergy, setActiveSynergy] = useState<SynergyModeId>(0);
-  const [sliderPos, setSliderPos] = useState(52);
   const [selectedPackQty, setSelectedPackQty] = useState<PackOption["quantity"]>(1);
   const [includeSerum, setIncludeSerum] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -1062,98 +1062,8 @@ export function ProductLanding({ initialStock }: Props) {
               </p>
             </div>
 
-            {/* Interactive Macro Before / After Comparator */}
-            <div className="mt-10 grid gap-10 lg:grid-cols-12 lg:items-center">
-              <div className="lg:col-span-7">
-                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-[#EFE4D8] shadow-[0_24px_60px_-24px_rgba(48,32,22,0.28)] select-none">
-                  {/* Base Layer: AFTER (28 jours) */}
-                  <img
-                    src="/images/skin-after.jpg"
-                    alt="Peau nue de très près après 28 jours avec LumiaSculpt"
-                    width={1024}
-                    height={768}
-                    loading="lazy"
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-
-                  {/* Clipped Top Layer: BEFORE (Jour 1) */}
-                  <div
-                    className="absolute inset-0 overflow-hidden"
-                    style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
-                  >
-                    <img
-                      src="/images/skin-before.jpg"
-                      alt="Peau nue de très près avant utilisation (Jour 1)"
-                      width={1024}
-                      height={768}
-                      loading="lazy"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-
-                  {/* Labels */}
-                  <span className="pointer-events-none absolute top-4 left-4 rounded-full bg-[#181312]/75 px-3.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
-                    Avant • Jour 1
-                  </span>
-                  <span className="pointer-events-none absolute top-4 right-4 rounded-full bg-white/95 px-3.5 py-1 text-[11px] font-semibold text-[#C8465A] shadow-xs backdrop-blur-md">
-                    Après • 28 jours
-                  </span>
-
-                  {/* Vertical Divider & Draggable Handle */}
-                  <div
-                    className="pointer-events-none absolute inset-y-0 z-10 w-0.5 bg-white/95 shadow-[0_0_12px_rgba(0,0,0,0.35)]"
-                    style={{ left: `${sliderPos}%` }}
-                  >
-                    <div className="absolute top-1/2 left-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-[#C8465A] text-sm font-bold text-white shadow-lg">
-                      ↔
-                    </div>
-                  </div>
-
-                  {/* Native accessible range overlay for smooth mouse & mobile finger dragging */}
-                  <input
-                    type="range"
-                    min={5}
-                    max={95}
-                    value={sliderPos}
-                    onChange={(e) => setSliderPos(Number(e.target.value))}
-                    aria-label="Comparer la peau avant et après 28 jours"
-                    className="absolute inset-0 z-20 h-full w-full cursor-ew-resize opacity-0"
-                  />
-                </div>
-                <p className="mt-3 text-center text-[11px] text-[#7A6862]">
-                  ↔ Glissez de gauche à droite • Peau nue sans crème ni sérum — aperçu visuel à 28
-                  jours
-                </p>
-              </div>
-
-              {/* Open Editorial Close-Up Observations */}
-              <div className="lg:col-span-5 divide-y divide-[#EFE1DA] border-y border-[#EFE1DA]">
-                {[
-                  {
-                    metric: "Pores & grain de peau",
-                    detail:
-                      "L'association lumière bleue 465 nm + chaleur douce resserre visiblement l'apparence des pores sur les joues.",
-                  },
-                  {
-                    metric: "Plis horizontaux du cou",
-                    detail:
-                      "La photobiomodulation rouge 630 nm lisse les stries du cou et redonne de la souplesse au derme.",
-                  },
-                  {
-                    metric: "Ovale & fermeté",
-                    detail:
-                      "Les micro-courants EMS réveillent le tonus musculaire le long de la mâchoire pour des contours plus nets.",
-                  },
-                ].map((obs) => (
-                  <div key={obs.metric} className="py-5">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#C8465A]">
-                      ✦ {obs.metric}
-                    </p>
-                    <p className="mt-1.5 text-sm leading-relaxed text-[#574A46]">{obs.detail}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Interactive Clinic-Grade Macro Before / After Comparator */}
+            <BeforeAfterComparator />
 
             {/* 3 Curated Luminous White Timeline Anchor Cards */}
             <div className="mt-12 grid gap-5 md:grid-cols-3">

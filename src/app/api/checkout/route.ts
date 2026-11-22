@@ -5,11 +5,15 @@ import {
   readStoreState,
   recordAndForwardOrder,
 } from "@/lib/store";
-import type { ShippingAddress } from "@/lib/supplier";
+import {
+  CONDUCTIVE_SERUM_ADDON,
+  type ShippingAddress,
+} from "@/lib/supplier";
 
 interface CheckoutBody {
   variantId: string;
   quantity: number;
+  includeConductiveSerum?: boolean;
   shippingAddress: ShippingAddress;
 }
 
@@ -17,6 +21,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as CheckoutBody;
     const quantity = Math.max(1, Math.min(10, Number(body.quantity || 1)));
+    const includeConductiveSerum = Boolean(body.includeConductiveSerum);
 
     const state = await readStoreState();
     const variant = state.stock.variants.find((v) => v.variantId === body.variantId);
@@ -37,29 +42,46 @@ export async function POST(req: NextRequest) {
     // If Stripe is configured, create a real Stripe Checkout Session
     if (stripeKey) {
       const stripe = new Stripe(stripeKey);
-      const totalEur = calculatePackTotalEur(variant.retailPriceEur, quantity);
+      const packTotalEur = calculatePackTotalEur(variant.retailPriceEur, quantity, false);
+      const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+        {
+          price_data: {
+            currency: "eur",
+            unit_amount: Math.round(packTotalEur * 100),
+            product_data: {
+              name: `Sculpteur EMS & LED LumiaSculpt™ (Pack x${quantity}) — ${variant.name}`,
+              metadata: {
+                variantId: variant.variantId,
+                supplierSku: variant.supplierSku,
+              },
+            },
+          },
+          quantity: 1,
+        },
+      ];
+
+      if (includeConductiveSerum) {
+        lineItems.push({
+          price_data: {
+            currency: "eur",
+            unit_amount: Math.round(CONDUCTIVE_SERUM_ADDON.priceEur * 100),
+            product_data: {
+              name: CONDUCTIVE_SERUM_ADDON.name,
+              description: CONDUCTIVE_SERUM_ADDON.subtitle,
+            },
+          },
+          quantity: 1,
+        });
+      }
+
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         customer_email: body.shippingAddress.email,
-        line_items: [
-          {
-            price_data: {
-              currency: "eur",
-              unit_amount: Math.round(totalEur * 100),
-              product_data: {
-                name: `Sculpteur EMS & LED LumiaSculpt™ (Pack x${quantity}) — ${variant.name}`,
-                metadata: {
-                  variantId: variant.variantId,
-                  supplierSku: variant.supplierSku,
-                },
-              },
-            },
-            quantity: 1,
-          },
-        ],
+        line_items: lineItems,
         metadata: {
           variantId: variant.variantId,
           quantity: String(quantity),
+          includeConductiveSerum: String(includeConductiveSerum),
           shippingFullName: body.shippingAddress.fullName,
           shippingEmail: body.shippingAddress.email,
           shippingLine1: body.shippingAddress.line1,
@@ -80,6 +102,7 @@ export async function POST(req: NextRequest) {
       orderId: localOrderId,
       variantId: variant.variantId,
       quantity,
+      includeConductiveSerum,
       shippingAddress: body.shippingAddress,
     });
 

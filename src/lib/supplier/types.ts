@@ -59,35 +59,53 @@ export interface PackOption {
   badge?: string;
 }
 
+export const CONDUCTIVE_SERUM_ADDON = {
+  id: "gel-serum-conducteur",
+  name: "Gel-Sérum Conducteur EMS (100 ml)",
+  subtitle:
+    "Acide hyaluronique & peptides de collagène — optimise la glisse et amplifie les micro-courants",
+  priceEur: 14.9,
+  compareAtEur: 24.9,
+  badge: "CONSEILLÉ AVEC L'EMS",
+} as const;
+
 export const PACK_OPTIONS: PackOption[] = [
   {
     quantity: 1,
     label: "1 × Sculpteur LumiaSculpt™",
     sublabel: "Livré avec câble USB-C & pochette velours",
     priceEur: 49.9,
-    compareAtEur: 89.9,
+    compareAtEur: 69.9,
   },
   {
     quantity: 2,
     label: "2 × Sculpteurs — Pack Duo",
-    sublabel: "Soit 39,95 € / unité • Économisez 99,90 €",
+    sublabel: "Soit 39,95 € / unité • Économisez 59,90 €",
     priceEur: 79.9,
-    compareAtEur: 179.8,
-    badge: "LE PLUS POPULAIRE • -55 %",
+    compareAtEur: 139.8,
+    badge: "LE PLUS POPULAIRE • -43 %",
   },
   {
     quantity: 3,
     label: "3 × Sculpteurs — Coffret Partage",
-    sublabel: "Soit 36,63 € / unité • Économisez 159,80 €",
+    sublabel: "Soit 36,63 € / unité • Économisez 99,80 €",
     priceEur: 109.9,
-    compareAtEur: 269.7,
-    badge: "MEILLEURE OFFRE • -59 %",
+    compareAtEur: 209.7,
+    badge: "MEILLEURE OFFRE • -48 %",
   },
 ];
 
-export function calculatePackTotalEur(unitPriceEur: number, quantity: number): number {
-  if (quantity === 1) return 49.9;
-  if (quantity === 2) return 79.9;
-  if (quantity === 3) return 109.9;
-  return Number((unitPriceEur * quantity).toFixed(2));
+export function calculatePackTotalEur(
+  unitPriceEur: number,
+  quantity: number,
+  includeConductiveSerum = false
+): number {
+  let baseTotal: number;
+  if (quantity === 1) baseTotal = 49.9;
+  else if (quantity === 2) baseTotal = 79.9;
+  else if (quantity === 3) baseTotal = 109.9;
+  else baseTotal = unitPriceEur * quantity;
+
+  const serumTotal = includeConductiveSerum ? CONDUCTIVE_SERUM_ADDON.priceEur : 0;
+  return Number((baseTotal + serumTotal).toFixed(2));
 }

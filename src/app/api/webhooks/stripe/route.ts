@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
         orderId: session.id,
         variantId: meta.variantId,
         quantity: Number(meta.quantity ?? 1),
+        includeConductiveSerum: meta.includeConductiveSerum === "true",
         shippingAddress: {
           fullName: meta.shippingFullName ?? "Client",
           email: meta.shippingEmail ?? session.customer_email ?? "",

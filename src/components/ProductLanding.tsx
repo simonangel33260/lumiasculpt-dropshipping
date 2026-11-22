@@ -5,6 +5,7 @@ import { ProductHero3D } from "./ProductHero3D";
 import { SkinAction3D, type SynergyModeId } from "./SkinAction3D";
 import { useState } from "react";
 import {
+  CONDUCTIVE_SERUM_ADDON,
   PACK_OPTIONS,
   calculatePackTotalEur,
   type PackOption,
@@ -236,7 +237,8 @@ export function ProductLanding({ initialStock }: Props) {
   const [ritualVideo, setRitualVideo] = useState<"soiree" | "demo">("soiree");
   const [activeSynergy, setActiveSynergy] = useState<SynergyModeId>(0);
   const [sliderPos, setSliderPos] = useState(52);
-  const [selectedPackQty, setSelectedPackQty] = useState<PackOption["quantity"]>(2);
+  const [selectedPackQty, setSelectedPackQty] = useState<PackOption["quantity"]>(1);
+  const [includeSerum, setIncludeSerum] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [demoConfirmation, setDemoConfirmation] = useState<{
@@ -264,7 +266,8 @@ export function ProductLanding({ initialStock }: Props) {
     PACK_OPTIONS.find((p) => p.quantity === selectedPackQty) ?? PACK_OPTIONS[0];
   const totalEur = calculatePackTotalEur(
     selectedVariant?.retailPriceEur ?? 49.9,
-    selectedPackQty
+    selectedPackQty,
+    includeSerum
   );
   const insufficientForPack = availableStock < selectedPackQty;
 
@@ -287,6 +290,7 @@ export function ProductLanding({ initialStock }: Props) {
         body: JSON.stringify({
           variantId: selectedVariant.variantId,
           quantity: selectedPackQty,
+          includeConductiveSerum: includeSerum,
           shippingAddress: form,
         }),
       });
@@ -660,6 +664,56 @@ export function ProductLanding({ initialStock }: Props) {
                       );
                     })}
                   </div>
+
+                  {/* Optional Conductive Gel-Serum Order Bump */}
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={includeSerum}
+                    onClick={() => setIncludeSerum((v) => !v)}
+                    className={`mt-3 w-full rounded-2xl border p-3.5 text-left transition ${
+                      includeSerum
+                        ? "border-[#C8465A] bg-[#FFF8F6] ring-1 ring-[#C8465A]/30"
+                        : "border-dashed border-[#DFC7BF] bg-[#FFFCFA] hover:border-[#C8465A]/60"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <span
+                          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition ${
+                            includeSerum
+                              ? "border-[#C8465A] bg-[#C8465A] text-white"
+                              : "border-stone-300 bg-white text-transparent"
+                          }`}
+                        >
+                          <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.4">
+                            <path d="M3.5 8.2 6.5 11.2 12.5 5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <p className="text-sm font-semibold text-[#181312]">
+                              {CONDUCTIVE_SERUM_ADDON.name}
+                            </p>
+                            <span className="rounded-full bg-[#FDF0F2] px-2 py-0.5 text-[9.5px] font-bold tracking-wide text-[#C8465A]">
+                              {CONDUCTIVE_SERUM_ADDON.badge}
+                            </span>
+                          </div>
+                          <p className="mt-0.5 text-xs leading-snug text-[#6B5C57]">
+                            {CONDUCTIVE_SERUM_ADDON.subtitle}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-bold text-[#C8465A]">
+                          +{formatEur(CONDUCTIVE_SERUM_ADDON.priceEur)}
+                        </p>
+                        <p className="text-[11px] text-stone-400 line-through">
+                          {formatEur(CONDUCTIVE_SERUM_ADDON.compareAtEur)}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
                 </div>
 
                 {/* 3. Shipping Details */}
@@ -1249,7 +1303,8 @@ export function ProductLanding({ initialStock }: Props) {
               LumiaSculpt™ 7-en-1 — {selectedVariant?.name}
             </p>
             <p className="text-[11px] sm:text-xs text-[#C8465A] font-semibold">
-              {activePack.label.split(" — ")[0]} : {formatEur(totalEur)} • Livraison offerte
+              {activePack.label.split(" — ")[0]}
+              {includeSerum ? " + Gel-Sérum" : ""} : {formatEur(totalEur)} • Livraison offerte
             </p>
           </div>
           <a

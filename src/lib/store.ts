@@ -17,6 +17,7 @@ export interface LocalOrder {
   variantName: string;
   supplierSku: string;
   quantity: number;
+  includeConductiveSerum?: boolean;
   totalEur: number;
   paymentStatus: "paid" | "pending";
   supplierStatus: "forwarded" | "pending" | "failed";
@@ -87,6 +88,7 @@ export async function recordAndForwardOrder(params: {
   orderId: string;
   variantId: string;
   quantity: number;
+  includeConductiveSerum?: boolean;
   shippingAddress: ShippingAddress;
 }): Promise<LocalOrder> {
   const state = await readStoreState();
@@ -114,7 +116,12 @@ export async function recordAndForwardOrder(params: {
     variantName: variant.name,
     supplierSku: variant.supplierSku,
     quantity: params.quantity,
-    totalEur: calculatePackTotalEur(variant.retailPriceEur, params.quantity),
+    includeConductiveSerum: Boolean(params.includeConductiveSerum),
+    totalEur: calculatePackTotalEur(
+      variant.retailPriceEur,
+      params.quantity,
+      Boolean(params.includeConductiveSerum)
+    ),
     paymentStatus: "paid",
     supplierStatus: supplierRes.success ? "forwarded" : "failed",
     supplierProvider: supplierRes.provider,

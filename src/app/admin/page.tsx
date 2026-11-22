@@ -157,6 +157,7 @@ export default function AdminSyncPage() {
                       <td className="py-3 pr-4">{order.shippingAddress.fullName}</td>
                       <td className="py-3 pr-4">
                         {order.variantName} × {order.quantity}
+                        {order.includeConductiveSerum ? " + Gel-Sérum" : ""}
                       </td>
                       <td className="py-3 pr-4">{order.totalEur.toFixed(2)} €</td>
                       <td className="py-3 pr-4">

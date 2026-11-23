@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { BeforeAfterComparator } from "./BeforeAfterComparator";
+import { BrandLogo } from "./BrandLogo";
 import { ProductHeroVideo } from "./ProductHeroVideo";
 import { SkinAction3D, type SynergyModeId } from "./SkinAction3D";
 import { useState } from "react";
@@ -369,18 +370,8 @@ export function ProductLanding({ initialStock }: Props) {
       {/* 2. Luxury Editorial Header */}
       <header className="sticky top-0 z-30 border-b border-[#EFE3DC]/90 bg-white/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5">
-          <a href="#commander" className="flex items-center gap-2.5">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#111114] text-xs font-semibold tracking-widest text-[#E5C896]">
-              LS
-            </span>
-            <div className="leading-tight">
-              <span className="font-[family-name:var(--font-serif)] text-xl font-bold tracking-tight">
-                LumiaSculpt™
-              </span>
-              <span className="hidden sm:inline-block ml-2 text-[11px] uppercase tracking-widest text-stone-500 border-l border-stone-300 pl-2">
-                Paris
-              </span>
-            </div>
+          <a href="#commander" className="flex items-center">
+            <BrandLogo variant="compact" size="md" />
           </a>
 
           <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-stone-700">
@@ -1192,9 +1183,14 @@ export function ProductLanding({ initialStock }: Props) {
         </section>
       </main>
 
-      <footer className="border-t border-[#EFE1DA] py-8 text-center text-xs text-[#7A6862]">
-        <div className="mx-auto max-w-6xl px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© {new Date().getFullYear()} LumiaSculpt™ Paris. Tous droits réservés.</p>
+      <footer className="border-t border-[#EFE1DA] py-10 text-center text-xs text-[#7A6862]">
+        <div className="mx-auto max-w-6xl px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-5">
+            <BrandLogo variant="full" size="sm" />
+            <p className="text-[11px] text-[#8B7670]">
+              © {new Date().getFullYear()} LumiaSculpt™ Paris. Tous droits réservés.
+            </p>
+          </div>
           <div className="flex items-center gap-4">
             <span>Essai 60 jours</span>
             <span>Paiement sécurisé Stripe</span>
